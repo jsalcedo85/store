@@ -299,3 +299,127 @@ body {
 .transition-base {
   @apply transition-all duration-200 ease-in-out;
 }
+
+/* ========================================
+   PrimeReact DataTable Customizations
+   ======================================== */
+
+/* DataTable Container */
+.p-datatable {
+  @apply text-sm;
+}
+
+/* Header Styling */
+.p-datatable .p-datatable-thead>tr>th {
+  @apply bg-slate-50 text-slate-600 font-semibold text-xs uppercase tracking-wider border-b border-slate-200;
+  padding: 0.75rem 1rem;
+}
+
+/* Body Rows */
+.p-datatable .p-datatable-tbody>tr {
+  @apply transition-colors border-b border-slate-100;
+}
+
+.p-datatable .p-datatable-tbody>tr:hover {
+  @apply bg-slate-50;
+}
+
+.p-datatable .p-datatable-tbody>tr>td {
+  @apply text-slate-700;
+  padding: 0.75rem 1rem;
+}
+
+/* Pagination */
+.p-paginator {
+  @apply bg-white border-t border-slate-200;
+  padding: 0.75rem 1rem;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page {
+  @apply min-w-[2rem] h-8 rounded-md transition-colors;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  @apply bg-blue-600 text-white;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page:not(.p-highlight):hover {
+  @apply bg-slate-100;
+}
+
+/* Input/Filter Styling */
+.p-datatable .p-datatable-header {
+  @apply bg-white border-b border-slate-200 p-4;
+}
+
+.p-inputtext {
+  @apply px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors;
+}
+
+/* Input Icon Container */
+.p-input-icon-left,
+.p-input-icon-right {
+  @apply relative inline-block w-full;
+}
+
+.p-input-icon-left>i,
+.p-input-icon-right>i {
+  @apply absolute top-1/2 -translate-y-1/2 text-slate-400;
+}
+
+.p-input-icon-left>i {
+  left: 0.75rem;
+}
+
+.p-input-icon-right>i {
+  right: 0.75rem;
+}
+
+.p-input-icon-left>.p-inputtext {
+  padding-left: 2.5rem;
+}
+
+.p-input-icon-right>.p-inputtext {
+  padding-right: 2.5rem;
+}
+
+/* Buttons in DataTable */
+.p-button {
+  @apply px-4 py-2 rounded-lg font-medium transition-all;
+}
+
+.p-button.p-button-text {
+  @apply bg-transparent hover:bg-slate-100;
+}
+
+.p-button.p-button-sm {
+  @apply px-3 py-1.5 text-xs;
+}
+
+/* Loading Overlay */
+.p-datatable .p-datatable-loading-overlay {
+  @apply bg-slate-100/80;
+}
+
+/* Empty Message */
+.p-datatable .p-datatable-emptymessage>td {
+  @apply text-center text-slate-500 py-8;
+}
+
+/* Sort Icons */
+.p-sortable-column-icon {
+  @apply text-slate-400;
+}
+
+.p-highlight .p-sortable-column-icon {
+  @apply text-blue-600;
+}
+
+/* Filter Icons */
+.p-column-filter-menu-button {
+  @apply text-slate-400 hover:text-slate-600;
+}
+
+.p-column-filter-menu-button.p-column-filter-menu-button-active {
+  @apply text-blue-600;
+}
