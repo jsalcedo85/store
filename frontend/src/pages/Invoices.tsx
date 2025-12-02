@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { salesAPI } from '../services/api';
 import { formatCurrency } from '../config/app.config';
+import { DataTable, DataTableColumn } from '../components/DataTable';
+import { Button } from 'primereact/button';
+import { Tag } from 'primereact/tag';
 
 interface Invoice {
   id: number;
@@ -23,6 +26,7 @@ const Invoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchInvoices();
@@ -32,7 +36,7 @@ const Invoices = () => {
     try {
       const params: Record<string, string> = {};
       if (typeFilter) params.type = typeFilter;
-      
+
       const response = await salesAPI.getInvoices(params);
       setInvoices(response.data.results || response.data);
     } catch (error) {
@@ -42,21 +46,46 @@ const Invoices = () => {
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'boleta': return 'badge-info';
-      case 'factura': return 'badge-success';
-      case 'nota_venta': return 'badge-warning';
-      default: return 'badge-info';
-    }
-  };
-
   // Count by type
   const countByType = {
     boleta: invoices.filter(i => i.invoice_type === 'boleta').length,
     factura: invoices.filter(i => i.invoice_type === 'factura').length,
     nota_venta: invoices.filter(i => i.invoice_type === 'nota_venta').length,
   };
+
+  // Column templates
+  const typeBodyTemplate = (rowData: Invoice) => {
+    let severity: 'success' | 'warning' | 'info' | 'danger' = 'info';
+    switch (rowData.invoice_type) {
+      case 'boleta': severity = 'info'; break;
+      case 'factura': severity = 'success'; break;
+      case 'nota_venta': severity = 'warning'; break;
+    }
+    return <Tag value={rowData.invoice_type_display} severity={severity} />;
+  };
+
+  const actionsBodyTemplate = (_rowData: Invoice) => {
+    return (
+      <Button
+        label="Ver"
+        icon="pi pi-eye"
+        size="small"
+        text
+        severity="help"
+        onClick={() => { }} // Placeholder for view action
+      />
+    );
+  };
+
+  const columns: DataTableColumn[] = [
+    { field: 'invoice_type', header: t('invoices.type'), body: typeBodyTemplate, sortable: true },
+    { field: 'series', header: t('invoices.series'), style: { fontFamily: 'monospace' } },
+    { field: 'number', header: t('invoices.number'), style: { fontFamily: 'monospace', fontWeight: 500 } },
+    { field: 'sale.client_name', header: t('sales.client'), body: (rowData) => rowData.sale?.client_name || 'Cliente General' },
+    { field: 'sale.total', header: t('common.total'), body: (rowData) => formatCurrency(rowData.sale?.total || 0), style: { fontWeight: 'bold' } },
+    { field: 'issued_at', header: t('common.date'), body: (rowData) => new Date(rowData.issued_at).toLocaleDateString('es'), sortable: true },
+    { field: 'actions', header: t('table.actions'), body: actionsBodyTemplate },
+  ];
 
   return (
     <div className="space-y-6">
@@ -91,79 +120,33 @@ const Invoices = () => {
         </div>
       </div>
 
-      {/* Filter */}
-      <div className="flex gap-4">
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="input w-auto"
-        >
-          <option value="">{t('common.all')}</option>
-          <option value="boleta">{t('invoices.boleta')}</option>
-          <option value="factura">{t('invoices.factura')}</option>
-          <option value="nota_venta">{t('invoices.notaVenta')}</option>
-        </select>
-      </div>
-
-      {/* Table */}
-      <div className="card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>{t('invoices.type')}</th>
-                <th>{t('invoices.series')}</th>
-                <th>{t('invoices.number')}</th>
-                <th>{t('sales.client')}</th>
-                <th>{t('common.total')}</th>
-                <th>{t('common.date')}</th>
-                <th>{t('common.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                  </td>
-                </tr>
-              ) : invoices.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-8 text-slate-500">
-                    {t('common.noResults')}
-                  </td>
-                </tr>
-              ) : (
-                invoices.map((invoice) => (
-                  <tr key={invoice.id}>
-                    <td>
-                      <span className={`badge ${getTypeColor(invoice.invoice_type)}`}>
-                        {invoice.invoice_type_display}
-                      </span>
-                    </td>
-                    <td className="font-mono">{invoice.series}</td>
-                    <td className="font-mono font-medium">{invoice.number}</td>
-                    <td>{invoice.sale?.client_name || 'Cliente General'}</td>
-                    <td className="font-semibold">
-                      {formatCurrency(invoice.sale?.total || 0)}
-                    </td>
-                    <td>{new Date(invoice.issued_at).toLocaleDateString('es')}</td>
-                    <td>
-                      <button className="text-primary-600 hover:text-primary-800 text-sm">
-                        Ver
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {/* Filter and DataTable */}
+      <div className="card">
+        <div className="flex justify-end mb-4">
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="input w-auto"
+          >
+            <option value="">{t('common.all')}</option>
+            <option value="boleta">{t('invoices.boleta')}</option>
+            <option value="factura">{t('invoices.factura')}</option>
+            <option value="nota_venta">{t('invoices.notaVenta')}</option>
+          </select>
         </div>
+
+        <DataTable
+          data={invoices}
+          columns={columns}
+          loading={isLoading}
+          globalFilterValue={search}
+          onGlobalFilterChange={setSearch}
+          searchPlaceholder={`${t('common.search')}...`}
+          emptyMessage={t('common.noResults')}
+        />
       </div>
     </div>
   );
 };
 
 export default Invoices;
-
-

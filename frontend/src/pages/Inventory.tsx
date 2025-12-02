@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { inventoryAPI } from '../services/api';
+import { DataTable, DataTableColumn } from '../components/DataTable';
+import { Button } from 'primereact/button';
+import { Tag } from 'primereact/tag';
 
 interface InventoryItem {
   id: number;
@@ -38,7 +41,7 @@ const Inventory = () => {
       const params: Record<string, string> = {};
       if (search) params.search = search;
       if (filter !== 'all') params.status = filter;
-      
+
       const response = await inventoryAPI.getAll(params);
       setInventory(response.data.results || response.data);
     } catch (error) {
@@ -73,43 +76,45 @@ const Inventory = () => {
     setShowAdjustModal(true);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  // Column templates
+  const statusBodyTemplate = (rowData: InventoryItem) => {
+    switch (rowData.stock_status) {
       case 'in_stock':
-        return <span className="badge badge-success">{t('inventory.inStock')}</span>;
+        return <Tag value={t('inventory.inStock')} severity="success" />;
       case 'low_stock':
-        return <span className="badge badge-warning">{t('inventory.lowStock')}</span>;
+        return <Tag value={t('inventory.lowStock')} severity="warning" />;
       case 'out_of_stock':
-        return <span className="badge badge-danger">{t('inventory.outOfStock')}</span>;
+        return <Tag value={t('inventory.outOfStock')} severity="danger" />;
       default:
         return null;
     }
   };
 
+  const actionsBodyTemplate = (rowData: InventoryItem) => {
+    return (
+      <Button
+        label={t('inventory.adjustment')}
+        icon="pi pi-sliders-h"
+        size="small"
+        severity="secondary"
+        onClick={() => openAdjustModal(rowData)}
+      />
+    );
+  };
+
+  const columns: DataTableColumn[] = [
+    { field: 'product_sku', header: t('products.sku'), sortable: true, style: { fontFamily: 'monospace', fontSize: '0.875rem' } },
+    { field: 'product_name', header: t('common.name'), sortable: true, style: { fontWeight: 500 } },
+    { field: 'product_barcode', header: t('products.barcode'), body: (rowData) => rowData.product_barcode || '-', style: { fontFamily: 'monospace', fontSize: '0.875rem' } },
+    { field: 'quantity', header: t('inventory.stock'), sortable: true, style: { fontWeight: 'bold' } },
+    { field: 'min_quantity', header: t('inventory.minStock'), sortable: true },
+    { field: 'location', header: t('inventory.location'), body: (rowData) => rowData.location || '-' },
+    { field: 'stock_status', header: t('common.status'), body: statusBodyTemplate, sortable: true },
+    { field: 'actions', header: t('table.actions'), body: actionsBodyTemplate, style: { width: '140px' } },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <div className="flex-1 max-w-md">
-          <input
-            type="text"
-            placeholder={`${t('common.search')}...`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input"
-          />
-        </div>
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="input w-auto"
-        >
-          <option value="all">{t('common.all')}</option>
-          <option value="low">{t('inventory.lowStock')}</option>
-          <option value="out">{t('inventory.outOfStock')}</option>
-        </select>
-      </div>
-
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-green-50 border border-green-200 rounded-xl p-4">
@@ -132,59 +137,30 @@ const Inventory = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>{t('products.sku')}</th>
-                <th>{t('common.name')}</th>
-                <th>{t('products.barcode')}</th>
-                <th>{t('inventory.stock')}</th>
-                <th>{t('inventory.minStock')}</th>
-                <th>{t('inventory.location')}</th>
-                <th>{t('common.status')}</th>
-                <th>{t('common.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                  </td>
-                </tr>
-              ) : inventory.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-8 text-slate-500">
-                    {t('common.noResults')}
-                  </td>
-                </tr>
-              ) : (
-                inventory.map((item) => (
-                  <tr key={item.id} className={item.is_low_stock ? 'bg-yellow-50' : ''}>
-                    <td className="font-mono text-sm">{item.product_sku}</td>
-                    <td className="font-medium">{item.product_name}</td>
-                    <td className="font-mono text-sm">{item.product_barcode || '-'}</td>
-                    <td className="font-bold">{item.quantity}</td>
-                    <td>{item.min_quantity}</td>
-                    <td>{item.location || '-'}</td>
-                    <td>{getStatusBadge(item.stock_status)}</td>
-                    <td>
-                      <button
-                        onClick={() => openAdjustModal(item)}
-                        className="btn btn-secondary text-sm px-3 py-1"
-                      >
-                        {t('inventory.adjustment')}
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {/* Filter and DataTable */}
+      <div className="card">
+        <div className="flex justify-end mb-4">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="input w-auto"
+          >
+            <option value="all">{t('common.all')}</option>
+            <option value="low">{t('inventory.lowStock')}</option>
+            <option value="out">{t('inventory.outOfStock')}</option>
+          </select>
         </div>
+
+        <DataTable
+          data={inventory}
+          columns={columns}
+          loading={isLoading}
+          globalFilterValue={search}
+          onGlobalFilterChange={setSearch}
+          searchPlaceholder={`${t('common.search')}...`}
+          emptyMessage={t('common.noResults')}
+        // No new button for inventory
+        />
       </div>
 
       {/* Adjust Modal */}
@@ -255,5 +231,3 @@ const Inventory = () => {
 };
 
 export default Inventory;
-
-

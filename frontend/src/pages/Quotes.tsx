@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { quotesAPI, productsAPI, clientsAPI } from '../services/api';
 import { formatCurrency, APP_CONFIG } from '../config/app.config';
+import { DataTable, DataTableColumn } from '../components/DataTable';
+import { Button } from 'primereact/button';
+import { Tag } from 'primereact/tag';
 
 interface Quote {
   id: number;
@@ -50,6 +53,7 @@ const Quotes = () => {
   const [validUntil, setValidUntil] = useState('');
   const [notes, setNotes] = useState('');
   const [terms, setTerms] = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchQuotes();
@@ -170,106 +174,84 @@ const Quotes = () => {
 
   const totals = calculateTotals();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'draft': return 'badge-info';
-      case 'sent': return 'badge-warning';
-      case 'accepted': return 'badge-success';
-      case 'rejected': return 'badge-danger';
-      case 'expired': return 'bg-slate-100 text-slate-700';
-      default: return 'badge-info';
+  // Column templates
+  const statusBodyTemplate = (rowData: Quote) => {
+    let severity: 'success' | 'warning' | 'danger' | 'info' | null = 'info';
+    switch (rowData.status) {
+      case 'draft': severity = 'info'; break;
+      case 'sent': severity = 'warning'; break;
+      case 'accepted': severity = 'success'; break;
+      case 'rejected': severity = 'danger'; break;
+      case 'expired': severity = null; break; // Custom style for expired
     }
+
+    if (severity === null) {
+      return <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs font-medium">{rowData.status_display}</span>;
+    }
+    return <Tag value={rowData.status_display} severity={severity} />;
   };
+
+  const actionsBodyTemplate = (rowData: Quote) => {
+    return (
+      <div className="flex gap-2">
+        {rowData.status === 'draft' && (
+          <Button
+            label="Enviar"
+            icon="pi pi-send"
+            size="small"
+            text
+            onClick={() => handleAction(rowData.id, 'send')}
+          />
+        )}
+        {rowData.status === 'sent' && (
+          <>
+            <Button
+              icon="pi pi-check"
+              severity="success"
+              rounded
+              text
+              tooltip="Aceptar"
+              onClick={() => handleAction(rowData.id, 'accept')}
+            />
+            <Button
+              icon="pi pi-times"
+              severity="danger"
+              rounded
+              text
+              tooltip="Rechazar"
+              onClick={() => handleAction(rowData.id, 'reject')}
+            />
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const columns: DataTableColumn[] = [
+    { field: 'quote_number', header: t('quotes.quoteNumber'), sortable: true, style: { fontFamily: 'monospace', fontWeight: 500 } },
+    { field: 'client_name', header: t('sales.client'), body: (rowData) => rowData.client_name || 'Sin cliente' },
+    { field: 'total', header: t('common.total'), body: (rowData) => formatCurrency(rowData.total), style: { fontWeight: 'bold' } },
+    { field: 'status', header: t('common.status'), body: statusBodyTemplate, sortable: true },
+    { field: 'valid_until', header: t('quotes.validUntil'), body: (rowData) => rowData.valid_until ? new Date(rowData.valid_until).toLocaleDateString('es') : '-' },
+    { field: 'created_at', header: t('common.date'), body: (rowData) => new Date(rowData.created_at).toLocaleDateString('es'), sortable: true },
+    { field: 'actions', header: t('table.actions'), body: actionsBodyTemplate, style: { minWidth: '150px' } },
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">{t('quotes.title')}</h2>
-        <button onClick={() => setShowNewQuote(true)} className="btn btn-primary">
-          + {t('quotes.newQuote')}
-        </button>
-      </div>
-
-      {/* Table */}
-      <div className="card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>{t('quotes.quoteNumber')}</th>
-                <th>{t('sales.client')}</th>
-                <th>{t('common.total')}</th>
-                <th>{t('common.status')}</th>
-                <th>{t('quotes.validUntil')}</th>
-                <th>{t('common.date')}</th>
-                <th>{t('common.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                  </td>
-                </tr>
-              ) : quotes.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-8 text-slate-500">
-                    {t('common.noResults')}
-                  </td>
-                </tr>
-              ) : (
-                quotes.map((quote) => (
-                  <tr key={quote.id}>
-                    <td className="font-mono font-medium">{quote.quote_number}</td>
-                    <td>{quote.client_name || 'Sin cliente'}</td>
-                    <td className="font-semibold">{formatCurrency(quote.total)}</td>
-                    <td>
-                      <span className={`badge ${getStatusColor(quote.status)}`}>
-                        {quote.status_display}
-                      </span>
-                    </td>
-                    <td>
-                      {quote.valid_until
-                        ? new Date(quote.valid_until).toLocaleDateString('es')
-                        : '-'}
-                    </td>
-                    <td>{new Date(quote.created_at).toLocaleDateString('es')}</td>
-                    <td>
-                      <div className="flex gap-2">
-                        {quote.status === 'draft' && (
-                          <button
-                            onClick={() => handleAction(quote.id, 'send')}
-                            className="text-blue-600 hover:text-blue-800 text-sm"
-                          >
-                            Enviar
-                          </button>
-                        )}
-                        {quote.status === 'sent' && (
-                          <>
-                            <button
-                              onClick={() => handleAction(quote.id, 'accept')}
-                              className="text-green-600 hover:text-green-800 text-sm"
-                            >
-                              Aceptar
-                            </button>
-                            <button
-                              onClick={() => handleAction(quote.id, 'reject')}
-                              className="text-red-600 hover:text-red-800 text-sm"
-                            >
-                              Rechazar
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* DataTable */}
+      <div className="card">
+        <DataTable
+          data={quotes}
+          columns={columns}
+          loading={isLoading}
+          globalFilterValue={search}
+          onGlobalFilterChange={setSearch}
+          onNew={() => setShowNewQuote(true)}
+          newButtonLabel={t('quotes.newQuote')}
+          searchPlaceholder={`${t('common.search')}...`}
+          emptyMessage={t('common.noResults')}
+        />
       </div>
 
       {/* New Quote Modal */}
@@ -410,5 +392,3 @@ const Quotes = () => {
 };
 
 export default Quotes;
-
-

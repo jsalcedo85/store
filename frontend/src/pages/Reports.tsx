@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  LineChart,
-  Line,
+
   BarChart,
   Bar,
   XAxis,
@@ -17,6 +16,8 @@ import {
 } from 'recharts';
 import { reportsAPI } from '../services/api';
 import { formatCurrency } from '../config/app.config';
+import { DataTable, DataTableColumn } from '../components/DataTable';
+import { Tag } from 'primereact/tag';
 
 interface SellerData {
   seller_name: string;
@@ -77,6 +78,7 @@ const Reports = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchReportData();
@@ -115,6 +117,35 @@ const Reports = () => {
     { id: 'accounting', label: t('reports.accountingReport'), icon: '🧮' },
   ];
 
+  // Column templates for Seller Table
+  const sellerColumns: DataTableColumn[] = [
+    { field: 'seller_name', header: 'Vendedor', body: (rowData) => rowData.seller_first_name || rowData.seller_name, sortable: true },
+    { field: 'count', header: 'Ventas', sortable: true },
+    { field: 'total', header: 'Total', body: (rowData) => formatCurrency(rowData.total), sortable: true, style: { fontWeight: 'bold' } },
+  ];
+
+  // Column templates for Inventory Table
+  const stockStatusBodyTemplate = (rowData: any) => {
+    switch (rowData.stock_status) {
+      case 'in_stock':
+        return <Tag value="En stock" severity="success" />;
+      case 'low_stock':
+        return <Tag value="Stock bajo" severity="warning" />;
+      case 'out_of_stock':
+        return <Tag value="Sin stock" severity="danger" />;
+      default:
+        return null;
+    }
+  };
+
+  const inventoryColumns: DataTableColumn[] = [
+    { field: 'product_sku', header: 'SKU', sortable: true, style: { fontFamily: 'monospace' } },
+    { field: 'product_name', header: 'Producto', sortable: true },
+    { field: 'quantity', header: 'Cantidad', sortable: true },
+    { field: 'value', header: 'Valor', body: (rowData) => formatCurrency(rowData.value), sortable: true },
+    { field: 'stock_status', header: 'Estado', body: stockStatusBodyTemplate, sortable: true },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Tabs */}
@@ -123,11 +154,10 @@ const Reports = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === tab.id
-                ? 'bg-primary-600 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === tab.id
+              ? 'bg-primary-600 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
           >
             <span className="mr-2">{tab.icon}</span>
             {tab.label}
@@ -135,7 +165,7 @@ const Reports = () => {
         ))}
       </div>
 
-      {isLoading ? (
+      {isLoading && !sellerData.length && !inventoryReport && !accountingData ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
         </div>
@@ -169,28 +199,12 @@ const Reports = () => {
               {/* Sales by Seller */}
               <div className="card">
                 <h3 className="text-lg font-semibold mb-4">{t('reports.sellerReport')}</h3>
-                <div className="overflow-x-auto">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>Vendedor</th>
-                        <th>Ventas</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sellerData.map((seller, index) => (
-                        <tr key={index}>
-                          <td className="font-medium">
-                            {seller.seller_first_name || seller.seller_name}
-                          </td>
-                          <td>{seller.count}</td>
-                          <td className="font-semibold">{formatCurrency(seller.total)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <DataTable
+                  data={sellerData}
+                  columns={sellerColumns}
+                  loading={isLoading}
+                  emptyMessage={t('common.noResults')}
+                />
               </div>
             </div>
           )}
@@ -219,47 +233,16 @@ const Reports = () => {
               </div>
 
               {/* Inventory Table */}
-              <div className="card p-0 overflow-hidden">
-                <div className="overflow-x-auto max-h-96">
-                  <table className="table">
-                    <thead className="sticky top-0 bg-slate-50">
-                      <tr>
-                        <th>SKU</th>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Valor</th>
-                        <th>Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {inventoryReport.items.map((item, index) => (
-                        <tr key={index}>
-                          <td className="font-mono text-sm">{item.product_sku}</td>
-                          <td>{item.product_name}</td>
-                          <td>{item.quantity}</td>
-                          <td>{formatCurrency(item.value)}</td>
-                          <td>
-                            <span
-                              className={`badge ${
-                                item.stock_status === 'in_stock'
-                                  ? 'badge-success'
-                                  : item.stock_status === 'low_stock'
-                                  ? 'badge-warning'
-                                  : 'badge-danger'
-                              }`}
-                            >
-                              {item.stock_status === 'in_stock'
-                                ? 'En stock'
-                                : item.stock_status === 'low_stock'
-                                ? 'Stock bajo'
-                                : 'Sin stock'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="card">
+                <DataTable
+                  data={inventoryReport.items}
+                  columns={inventoryColumns}
+                  loading={isLoading}
+                  globalFilterValue={search}
+                  onGlobalFilterChange={setSearch}
+                  searchPlaceholder={`${t('common.search')}...`}
+                  emptyMessage={t('common.noResults')}
+                />
               </div>
             </div>
           )}
@@ -317,23 +300,20 @@ const Reports = () => {
                       </p>
                     </div>
                     <div
-                      className={`card ${
-                        accountingData.profit >= 0
-                          ? 'bg-emerald-50 border-emerald-200'
-                          : 'bg-red-50 border-red-200'
-                      }`}
+                      className={`card ${accountingData.profit >= 0
+                        ? 'bg-emerald-50 border-emerald-200'
+                        : 'bg-red-50 border-red-200'
+                        }`}
                     >
                       <p
-                        className={`text-sm ${
-                          accountingData.profit >= 0 ? 'text-emerald-600' : 'text-red-600'
-                        }`}
+                        className={`text-sm ${accountingData.profit >= 0 ? 'text-emerald-600' : 'text-red-600'
+                          }`}
                       >
                         Utilidad
                       </p>
                       <p
-                        className={`text-2xl font-bold ${
-                          accountingData.profit >= 0 ? 'text-emerald-700' : 'text-red-700'
-                        }`}
+                        className={`text-2xl font-bold ${accountingData.profit >= 0 ? 'text-emerald-700' : 'text-red-700'
+                          }`}
                       >
                         {formatCurrency(accountingData.profit)}
                       </p>
@@ -429,5 +409,3 @@ const Reports = () => {
 };
 
 export default Reports;
-
-

@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { productsAPI } from '../services/api';
 import { formatCurrency } from '../config/app.config';
+import { DataTable, DataTableColumn } from '../components/DataTable';
+import { Button } from 'primereact/button';
+import { Tag } from 'primereact/tag';
 
 interface Category {
   id: number;
@@ -126,116 +129,87 @@ const Products = () => {
     }
   };
 
+  const openCreateModal = () => {
+    setEditingProduct(null);
+    setFormData({
+      name: '',
+      sku: '',
+      barcode: '',
+      category: '',
+      price: '',
+      cost: '',
+      apply_igv: true,
+      description: '',
+    });
+    setShowModal(true);
+  };
+
+  // Column templates
+  const stockBodyTemplate = (rowData: Product) => {
+    const severity = rowData.stock <= 0 ? 'danger' : rowData.stock <= 10 ? 'warning' : 'success';
+    return <Tag value={rowData.stock} severity={severity} />;
+  };
+
+  const statusBodyTemplate = (rowData: Product) => {
+    return (
+      <Tag
+        value={rowData.is_active ? t('common.active') : t('common.inactive')}
+        severity={rowData.is_active ? 'success' : 'danger'}
+      />
+    );
+  };
+
+  const actionsBodyTemplate = (rowData: Product) => {
+    return (
+      <div className="flex gap-2">
+        <Button
+          icon="pi pi-pencil"
+          rounded
+          text
+          severity="info"
+          onClick={() => handleEdit(rowData)}
+          tooltip={t('buttons.edit')}
+          tooltipOptions={{ position: 'top' }}
+        />
+        <Button
+          icon="pi pi-trash"
+          rounded
+          text
+          severity="danger"
+          onClick={() => handleDelete(rowData.id)}
+          tooltip={t('buttons.delete')}
+          tooltipOptions={{ position: 'top' }}
+        />
+      </div>
+    );
+  };
+
+  const columns: DataTableColumn[] = [
+    { field: 'sku', header: t('products.sku'), sortable: true, style: { fontFamily: 'monospace', fontSize: '0.875rem' } },
+    { field: 'name', header: t('common.name'), sortable: true, style: { fontWeight: 500 } },
+    { field: 'category_name', header: t('products.category'), body: (rowData) => rowData.category_name || '-' },
+    { field: 'barcode', header: t('products.barcode'), body: (rowData) => rowData.barcode || '-', style: { fontFamily: 'monospace', fontSize: '0.875rem' } },
+    { field: 'price', header: t('common.price'), body: (rowData) => formatCurrency(rowData.price) },
+    { field: 'stock', header: t('inventory.stock'), body: stockBodyTemplate, sortable: true },
+    { field: 'is_active', header: t('common.status'), body: statusBodyTemplate, sortable: true },
+    { field: 'actions', header: t('table.actions'), body: actionsBodyTemplate, style: { width: '120px' } },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex-1 max-w-md">
-          <input
-            type="text"
-            placeholder={`${t('common.search')}...`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input"
-          />
-        </div>
-        <button
-          onClick={() => {
-            setEditingProduct(null);
-            setFormData({
-              name: '',
-              sku: '',
-              barcode: '',
-              category: '',
-              price: '',
-              cost: '',
-              apply_igv: true,
-              description: '',
-            });
-            setShowModal(true);
-          }}
-          className="btn btn-primary"
-        >
-          + {t('products.newProduct')}
-        </button>
-      </div>
-
-      {/* Table */}
-      <div className="card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>{t('products.sku')}</th>
-                <th>{t('common.name')}</th>
-                <th>{t('products.category')}</th>
-                <th>{t('products.barcode')}</th>
-                <th>{t('common.price')}</th>
-                <th>{t('inventory.stock')}</th>
-                <th>{t('common.status')}</th>
-                <th>{t('common.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                  </td>
-                </tr>
-              ) : products.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-8 text-slate-500">
-                    {t('common.noResults')}
-                  </td>
-                </tr>
-              ) : (
-                products.map((product) => (
-                  <tr key={product.id}>
-                    <td className="font-mono text-sm">{product.sku}</td>
-                    <td className="font-medium">{product.name}</td>
-                    <td>{product.category_name || '-'}</td>
-                    <td className="font-mono text-sm">{product.barcode || '-'}</td>
-                    <td>{formatCurrency(product.price)}</td>
-                    <td>
-                      <span
-                        className={`badge ${product.stock <= 0
-                          ? 'badge-danger'
-                          : product.stock <= 10
-                            ? 'badge-warning'
-                            : 'badge-success'
-                          }`}
-                      >
-                        {product.stock}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge ${product.is_active ? 'badge-success' : 'badge-danger'}`}>
-                        {product.is_active ? t('common.active') : t('common.inactive')}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(product)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* DataTable */}
+      <div className="card">
+        <DataTable
+          data={products}
+          columns={columns}
+          loading={isLoading}
+          globalFilterValue={search}
+          onGlobalFilterChange={setSearch}
+          onNew={openCreateModal}
+          newButtonLabel={t('products.newProduct')}
+          searchPlaceholder={`${t('common.search')}...`}
+          emptyMessage={t('common.noResults')}
+        />
       </div>
 
       {/* Modal */}
@@ -355,5 +329,3 @@ const Products = () => {
 };
 
 export default Products;
-
-

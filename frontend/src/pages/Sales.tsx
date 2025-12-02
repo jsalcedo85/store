@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { salesAPI, productsAPI, clientsAPI } from '../services/api';
 import { formatCurrency, APP_CONFIG } from '../config/app.config';
+import { DataTable, DataTableColumn } from '../components/DataTable';
+import { Button } from 'primereact/button';
+import { Tag } from 'primereact/tag';
 
 interface Sale {
   id: number;
@@ -54,6 +57,7 @@ const Sales = () => {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [invoiceType, setInvoiceType] = useState('boleta');
   const [productSearch, setProductSearch] = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchSales();
@@ -174,103 +178,63 @@ const Sales = () => {
       p.sku.toLowerCase().includes(productSearch.toLowerCase())
   );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'badge-success';
-      case 'pending':
-        return 'badge-warning';
-      case 'cancelled':
-        return 'badge-danger';
-      default:
-        return 'badge-info';
+  // Column templates
+  const statusBodyTemplate = (rowData: Sale) => {
+    let severity: 'success' | 'warning' | 'danger' | 'info' = 'info';
+    switch (rowData.status) {
+      case 'completed': severity = 'success'; break;
+      case 'pending': severity = 'warning'; break;
+      case 'cancelled': severity = 'danger'; break;
     }
+    return <Tag value={rowData.status_display} severity={severity} />;
   };
+
+  const actionsBodyTemplate = (rowData: Sale) => {
+    if (rowData.status === 'cancelled') return null;
+    return (
+      <Button
+        label="Anular"
+        severity="danger"
+        text
+        size="small"
+        onClick={() => handleCancelSale(rowData.id)}
+      />
+    );
+  };
+
+  const invoiceBodyTemplate = (rowData: Sale) => {
+    return rowData.invoice ? `${rowData.invoice.series}-${rowData.invoice.number}` : '-';
+  };
+
+  const columns: DataTableColumn[] = [
+    { field: 'id', header: 'ID', sortable: true, style: { width: '80px' } },
+    { field: 'invoice', header: t('invoices.type'), body: invoiceBodyTemplate, style: { fontFamily: 'monospace' } },
+    { field: 'client_name', header: t('sales.client'), body: (rowData) => rowData.client_name || 'Cliente General' },
+    { field: 'seller_name', header: t('sales.seller') },
+    { field: 'subtotal', header: t('common.subtotal'), body: (rowData) => formatCurrency(rowData.subtotal) },
+    { field: 'igv', header: t('sales.igv'), body: (rowData) => formatCurrency(rowData.igv) },
+    { field: 'total', header: t('common.total'), body: (rowData) => formatCurrency(rowData.total), style: { fontWeight: 'bold' } },
+    { field: 'payment_method_display', header: t('sales.paymentMethod') },
+    { field: 'status', header: t('common.status'), body: statusBodyTemplate, sortable: true },
+    { field: 'created_at', header: t('common.date'), body: (rowData) => new Date(rowData.created_at).toLocaleDateString('es'), sortable: true },
+    { field: 'actions', header: t('table.actions'), body: actionsBodyTemplate },
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">{t('sales.title')}</h2>
-        <button
-          onClick={() => setShowNewSale(true)}
-          className="btn btn-primary"
-        >
-          + {t('sales.newSale')}
-        </button>
-      </div>
-
-      {/* Sales Table */}
-      <div className="card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>{t('invoices.type')}</th>
-                <th>{t('sales.client')}</th>
-                <th>{t('sales.seller')}</th>
-                <th>{t('common.subtotal')}</th>
-                <th>{t('sales.igv')}</th>
-                <th>{t('common.total')}</th>
-                <th>{t('sales.paymentMethod')}</th>
-                <th>{t('common.status')}</th>
-                <th>{t('common.date')}</th>
-                <th>{t('common.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={11} className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                  </td>
-                </tr>
-              ) : sales.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="text-center py-8 text-slate-500">
-                    {t('common.noResults')}
-                  </td>
-                </tr>
-              ) : (
-                sales.map((sale) => (
-                  <tr key={sale.id}>
-                    <td>#{sale.id}</td>
-                    <td className="text-sm">
-                      {sale.invoice
-                        ? `${sale.invoice.series}-${sale.invoice.number}`
-                        : '-'}
-                    </td>
-                    <td>{sale.client_name || 'Cliente General'}</td>
-                    <td>{sale.seller_name}</td>
-                    <td>{formatCurrency(sale.subtotal)}</td>
-                    <td>{formatCurrency(sale.igv)}</td>
-                    <td className="font-semibold">{formatCurrency(sale.total)}</td>
-                    <td>{sale.payment_method_display}</td>
-                    <td>
-                      <span className={`badge ${getStatusColor(sale.status)}`}>
-                        {sale.status_display}
-                      </span>
-                    </td>
-                    <td className="text-sm">
-                      {new Date(sale.created_at).toLocaleDateString('es')}
-                    </td>
-                    <td>
-                      {sale.status !== 'cancelled' && (
-                        <button
-                          onClick={() => handleCancelSale(sale.id)}
-                          className="text-red-600 hover:text-red-800 text-sm"
-                        >
-                          Anular
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* DataTable */}
+      <div className="card">
+        <DataTable
+          data={sales}
+          columns={columns}
+          loading={isLoading}
+          globalFilterValue={search}
+          onGlobalFilterChange={setSearch}
+          onNew={() => setShowNewSale(true)}
+          newButtonLabel={t('sales.newSale')}
+          searchPlaceholder={`${t('common.search')}...`}
+          emptyMessage={t('common.noResults')}
+        />
       </div>
 
       {/* New Sale Modal */}
@@ -435,5 +399,3 @@ const Sales = () => {
 };
 
 export default Sales;
-
-

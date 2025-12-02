@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { expensesAPI } from '../services/api';
 import { formatCurrency } from '../config/app.config';
+import { DataTable, DataTableColumn } from '../components/DataTable';
+import { Button } from 'primereact/button';
 
 interface ExpenseCategory {
   id: number;
@@ -121,41 +123,69 @@ const Expenses = () => {
     }
   };
 
+  const openCreateModal = () => {
+    setEditingExpense(null);
+    setFormData({
+      category: '',
+      description: '',
+      amount: '',
+      payment_method: 'cash',
+      receipt_number: '',
+      date: new Date().toISOString().split('T')[0],
+      notes: '',
+    });
+    setShowModal(true);
+  };
+
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  // Column templates
+  const amountBodyTemplate = (rowData: Expense) => {
+    return <span className="font-semibold text-red-600">{formatCurrency(rowData.amount)}</span>;
+  };
+
+  const dateBodyTemplate = (rowData: Expense) => {
+    return new Date(rowData.date).toLocaleDateString('es');
+  };
+
+  const actionsBodyTemplate = (rowData: Expense) => {
+    return (
+      <div className="flex gap-2">
+        <Button
+          icon="pi pi-pencil"
+          rounded
+          text
+          severity="info"
+          onClick={() => handleEdit(rowData)}
+          tooltip={t('buttons.edit')}
+          tooltipOptions={{ position: 'top' }}
+        />
+        <Button
+          icon="pi pi-trash"
+          rounded
+          text
+          severity="danger"
+          onClick={() => handleDelete(rowData.id)}
+          tooltip={t('buttons.delete')}
+          tooltipOptions={{ position: 'top' }}
+        />
+      </div>
+    );
+  };
+
+  const columns: DataTableColumn[] = [
+    { field: 'date', header: t('common.date'), body: dateBodyTemplate, sortable: true },
+    { field: 'category_name', header: t('products.category'), body: (rowData) => rowData.category_name || '-' },
+    { field: 'description', header: t('common.description'), style: { maxWidth: '200px' }, body: (rowData) => <div className="truncate" title={rowData.description}>{rowData.description}</div> },
+    { field: 'amount', header: t('expenses.amount'), body: amountBodyTemplate, sortable: true },
+    { field: 'payment_method_display', header: t('sales.paymentMethod'), sortable: true },
+    { field: 'receipt_number', header: t('expenses.receiptNumber'), body: (rowData) => rowData.receipt_number || '-', style: { fontFamily: 'monospace' } },
+    { field: 'user_name', header: 'Usuario', sortable: true },
+    { field: 'actions', header: t('table.actions'), body: actionsBodyTemplate, style: { width: '120px' } },
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex-1 max-w-md">
-          <input
-            type="text"
-            placeholder={`${t('common.search')}...`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input"
-          />
-        </div>
-        <button
-          onClick={() => {
-            setEditingExpense(null);
-            setFormData({
-              category: '',
-              description: '',
-              amount: '',
-              payment_method: 'cash',
-              receipt_number: '',
-              date: new Date().toISOString().split('T')[0],
-              notes: '',
-            });
-            setShowModal(true);
-          }}
-          className="btn btn-primary"
-        >
-          + {t('expenses.newExpense')}
-        </button>
-      </div>
-
       {/* Summary */}
       <div className="card bg-red-50 border-red-200">
         <div className="flex items-center gap-4">
@@ -169,69 +199,19 @@ const Expenses = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>{t('common.date')}</th>
-                <th>{t('products.category')}</th>
-                <th>{t('common.description')}</th>
-                <th>{t('expenses.amount')}</th>
-                <th>{t('sales.paymentMethod')}</th>
-                <th>{t('expenses.receiptNumber')}</th>
-                <th>Usuario</th>
-                <th>{t('common.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                  </td>
-                </tr>
-              ) : expenses.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-8 text-slate-500">
-                    {t('common.noResults')}
-                  </td>
-                </tr>
-              ) : (
-                expenses.map((expense) => (
-                  <tr key={expense.id}>
-                    <td>{new Date(expense.date).toLocaleDateString('es')}</td>
-                    <td>{expense.category_name || '-'}</td>
-                    <td className="max-w-xs truncate">{expense.description}</td>
-                    <td className="font-semibold text-red-600">
-                      {formatCurrency(expense.amount)}
-                    </td>
-                    <td>{expense.payment_method_display}</td>
-                    <td className="font-mono text-sm">{expense.receipt_number || '-'}</td>
-                    <td>{expense.user_name}</td>
-                    <td>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(expense)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => handleDelete(expense.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* DataTable */}
+      <div className="card">
+        <DataTable
+          data={expenses}
+          columns={columns}
+          loading={isLoading}
+          globalFilterValue={search}
+          onGlobalFilterChange={setSearch}
+          onNew={openCreateModal}
+          newButtonLabel={t('expenses.newExpense')}
+          searchPlaceholder={`${t('common.search')}...`}
+          emptyMessage={t('common.noResults')}
+        />
       </div>
 
       {/* Modal */}
@@ -340,5 +320,3 @@ const Expenses = () => {
 };
 
 export default Expenses;
-
-

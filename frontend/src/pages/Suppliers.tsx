@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { suppliersAPI } from '../services/api';
+import { DataTable, DataTableColumn } from '../components/DataTable';
+import { Button } from 'primereact/button';
+import { Tag } from 'primereact/tag';
 
 interface Supplier {
   id: number;
@@ -93,101 +96,79 @@ const Suppliers = () => {
     }
   };
 
+  const openCreateModal = () => {
+    setEditingSupplier(null);
+    setFormData({
+      name: '',
+      ruc: '',
+      email: '',
+      phone: '',
+      address: '',
+      contact_name: '',
+    });
+    setShowModal(true);
+  };
+
+  // Column templates
+  const statusBodyTemplate = (rowData: Supplier) => {
+    return (
+      <Tag
+        value={rowData.is_active ? t('common.active') : t('common.inactive')}
+        severity={rowData.is_active ? 'success' : 'danger'}
+      />
+    );
+  };
+
+  const actionsBodyTemplate = (rowData: Supplier) => {
+    return (
+      <div className="flex gap-2">
+        <Button
+          icon="pi pi-pencil"
+          rounded
+          text
+          severity="info"
+          onClick={() => handleEdit(rowData)}
+          tooltip={t('buttons.edit')}
+          tooltipOptions={{ position: 'top' }}
+        />
+        <Button
+          icon="pi pi-trash"
+          rounded
+          text
+          severity="danger"
+          onClick={() => handleDelete(rowData.id)}
+          tooltip={t('buttons.delete')}
+          tooltipOptions={{ position: 'top' }}
+        />
+      </div>
+    );
+  };
+
+  const columns: DataTableColumn[] = [
+    { field: 'ruc', header: 'RUC', sortable: true, style: { fontFamily: 'monospace' } },
+    { field: 'name', header: t('common.name'), sortable: true, style: { fontWeight: 500 } },
+    { field: 'contact_name', header: t('suppliers.contactName'), body: (rowData) => rowData.contact_name || '-' },
+    { field: 'email', header: t('common.email'), body: (rowData) => rowData.email || '-' },
+    { field: 'phone', header: t('common.phone'), body: (rowData) => rowData.phone || '-' },
+    { field: 'is_active', header: t('common.status'), body: statusBodyTemplate, sortable: true },
+    { field: 'actions', header: t('table.actions'), body: actionsBodyTemplate, style: { width: '120px' } },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex-1 max-w-md">
-          <input
-            type="text"
-            placeholder={`${t('common.search')}...`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input"
-          />
-        </div>
-        <button
-          onClick={() => {
-            setEditingSupplier(null);
-            setFormData({
-              name: '',
-              ruc: '',
-              email: '',
-              phone: '',
-              address: '',
-              contact_name: '',
-            });
-            setShowModal(true);
-          }}
-          className="btn btn-primary"
-        >
-          + {t('suppliers.newSupplier')}
-        </button>
-      </div>
-
-      {/* Table */}
-      <div className="card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>RUC</th>
-                <th>{t('common.name')}</th>
-                <th>{t('suppliers.contactName')}</th>
-                <th>{t('common.email')}</th>
-                <th>{t('common.phone')}</th>
-                <th>{t('common.status')}</th>
-                <th>{t('common.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                  </td>
-                </tr>
-              ) : suppliers.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-8 text-slate-500">
-                    {t('common.noResults')}
-                  </td>
-                </tr>
-              ) : (
-                suppliers.map((supplier) => (
-                  <tr key={supplier.id}>
-                    <td className="font-mono">{supplier.ruc}</td>
-                    <td className="font-medium">{supplier.name}</td>
-                    <td>{supplier.contact_name || '-'}</td>
-                    <td>{supplier.email || '-'}</td>
-                    <td>{supplier.phone || '-'}</td>
-                    <td>
-                      <span className={`badge ${supplier.is_active ? 'badge-success' : 'badge-danger'}`}>
-                        {supplier.is_active ? t('common.active') : t('common.inactive')}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(supplier)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => handleDelete(supplier.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* DataTable */}
+      <div className="card">
+        <DataTable
+          data={suppliers}
+          columns={columns}
+          loading={isLoading}
+          globalFilterValue={search}
+          onGlobalFilterChange={setSearch}
+          onNew={openCreateModal}
+          newButtonLabel={t('suppliers.newSupplier')}
+          searchPlaceholder={`${t('common.search')}...`}
+          emptyMessage={t('common.noResults')}
+        />
       </div>
 
       {/* Modal */}
@@ -286,5 +267,3 @@ const Suppliers = () => {
 };
 
 export default Suppliers;
-
-
