@@ -141,7 +141,11 @@ const Reports = () => {
     chart: { type: 'column', height: 320 },
     title: { text: '' },
     xAxis: {
-      categories: monthlyData.sales.map(s => new Date(s.month.substring(0, 10) + 'T00:00:00').toLocaleDateString('es', { month: 'short', year: '2-digit' })),
+      categories: monthlyData.sales.map(s => {
+        const date = new Date(s.month.substring(0, 10) + 'T00:00:00');
+        const label = date.toLocaleDateString('es', { month: 'short', year: 'numeric' });
+        return label.charAt(0).toUpperCase() + label.slice(1);
+      }),
     },
     yAxis: {
       title: { text: 'Ventas' },
