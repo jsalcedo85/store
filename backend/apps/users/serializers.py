@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating users."""
     
-    password = serializers.CharField(write_only=True, min_length=4)
+    password = serializers.CharField(write_only=True, min_length=12)
     
     class Meta:
         model = User
@@ -43,6 +43,4 @@ class ChangePasswordSerializer(serializers.Serializer):
     """Serializer for password change."""
     
     old_password = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True, min_length=4)
-
-
+    new_password = serializers.CharField(required=True, min_length=12)

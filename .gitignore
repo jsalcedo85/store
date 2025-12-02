@@ -77,3 +77,4 @@ lerna-debug.log*
 *.bak
 *.tmp
 .cache/
+store_db.session.sql

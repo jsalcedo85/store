@@ -42,3 +42,44 @@ class User(AbstractUser):
         return self.role == self.Role.ACCOUNTANT
 
 
+class AuthenticationLog(models.Model):
+    """Audit log for authentication events."""
+    
+    class EventType(models.TextChoices):
+        LOGIN_SUCCESS = 'login_success', 'Login Exitoso'
+        LOGIN_FAILED = 'login_failed', 'Login Fallido'
+        LOGOUT = 'logout', 'Logout'
+        PASSWORD_CHANGE = 'password_change', 'Cambio de Contraseña'
+        PASSWORD_RESET = 'password_reset', 'Reset de Contraseña'
+        TOKEN_REFRESH = 'token_refresh', 'Refresh de Token'
+        ACCOUNT_LOCKED = 'account_locked', 'Cuenta Bloqueada'
+    
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='auth_logs'
+    )
+    username = models.CharField(max_length=150)
+    event_type = models.CharField(max_length=50, choices=EventType.choices)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField(blank=True)
+    success = models.BooleanField()
+    details = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Log de Autenticación'
+        verbose_name_plural = 'Logs de Autenticación'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['-timestamp']),
+            models.Index(fields=['username', '-timestamp']),
+            models.Index(fields=['ip_address', '-timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.username} - {self.get_event_type_display()} - {self.timestamp}"
+
+
