@@ -158,7 +158,7 @@ const Dashboard = () => {
     chart: { type: 'area', height: 280 },
     title: { text: '' },
     xAxis: {
-      categories: salesChart.map(d => new Date(d.date).toLocaleDateString(getLocale(), { day: '2-digit', month: 'short' })),
+      categories: salesChart.map(d => new Date(d.date + 'T00:00:00').toLocaleDateString(getLocale(), { day: '2-digit', month: 'short' })),
       tickInterval: Math.ceil(salesChart.length / 10),
     },
     yAxis: {
@@ -277,7 +277,7 @@ const Dashboard = () => {
                 )}
               </div>
               <div className={`w-2 h-12 rounded-full ${stat.trend === 'up' ? 'bg-emerald-500' :
-                  stat.trend === 'down' ? 'bg-red-500' : 'bg-slate-300'
+                stat.trend === 'down' ? 'bg-red-500' : 'bg-slate-300'
                 }`} />
             </div>
           </div>

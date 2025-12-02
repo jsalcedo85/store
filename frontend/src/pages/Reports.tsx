@@ -141,7 +141,7 @@ const Reports = () => {
     chart: { type: 'column', height: 320 },
     title: { text: '' },
     xAxis: {
-      categories: monthlyData.sales.map(s => new Date(s.month).toLocaleDateString('es', { month: 'short', year: '2-digit' })),
+      categories: monthlyData.sales.map(s => new Date(s.month.substring(0, 10) + 'T00:00:00').toLocaleDateString('es', { month: 'short', year: '2-digit' })),
     },
     yAxis: {
       title: { text: 'Ventas' },
@@ -217,8 +217,8 @@ const Reports = () => {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center ${activeTab === tab.id
-                ? 'bg-primary-600 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              ? 'bg-primary-600 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
           >
             <i className={`${tab.icon} mr-2`}></i>
@@ -347,8 +347,8 @@ const Reports = () => {
                     </div>
                     <div
                       className={`card ${accountingData.profit >= 0
-                          ? 'bg-emerald-50 border-emerald-200'
-                          : 'bg-red-50 border-red-200'
+                        ? 'bg-emerald-50 border-emerald-200'
+                        : 'bg-red-50 border-red-200'
                         }`}
                     >
                       <p
