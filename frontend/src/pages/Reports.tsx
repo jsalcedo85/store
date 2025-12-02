@@ -109,31 +109,31 @@ const Reports = () => {
 
   // Column templates for Seller Table
   const sellerColumns: DataTableColumn[] = [
-    { field: 'seller_name', header: 'Vendedor', body: (rowData) => rowData.seller_first_name || rowData.seller_name, sortable: true },
-    { field: 'count', header: 'Ventas', sortable: true },
-    { field: 'total', header: 'Total', body: (rowData) => formatCurrency(rowData.total), sortable: true, style: { fontWeight: 'bold' } },
+    { field: 'seller_name', header: t('reports.table.seller'), body: (rowData) => rowData.seller_first_name || rowData.seller_name, sortable: true },
+    { field: 'count', header: t('reports.table.sales'), sortable: true },
+    { field: 'total', header: t('reports.table.total'), body: (rowData) => formatCurrency(rowData.total), sortable: true, style: { fontWeight: 'bold' } },
   ];
 
   // Column templates for Inventory Table
   const stockStatusBodyTemplate = (rowData: any) => {
     switch (rowData.stock_status) {
       case 'in_stock':
-        return <Tag value="En stock" severity="success" />;
+        return <Tag value={t('inventory.inStock')} severity="success" />;
       case 'low_stock':
-        return <Tag value="Stock bajo" severity="warning" />;
+        return <Tag value={t('inventory.lowStock')} severity="warning" />;
       case 'out_of_stock':
-        return <Tag value="Sin stock" severity="danger" />;
+        return <Tag value={t('inventory.outOfStock')} severity="danger" />;
       default:
         return null;
     }
   };
 
   const inventoryColumns: DataTableColumn[] = [
-    { field: 'product_sku', header: 'SKU', sortable: true, style: { fontFamily: 'monospace' } },
-    { field: 'product_name', header: 'Producto', sortable: true },
-    { field: 'quantity', header: 'Cantidad', sortable: true },
-    { field: 'value', header: 'Valor', body: (rowData) => formatCurrency(rowData.value), sortable: true },
-    { field: 'stock_status', header: 'Estado', body: stockStatusBodyTemplate, sortable: true },
+    { field: 'product_sku', header: t('reports.table.sku'), sortable: true, style: { fontFamily: 'monospace' } },
+    { field: 'product_name', header: t('reports.table.product'), sortable: true },
+    { field: 'quantity', header: t('reports.table.quantity'), sortable: true },
+    { field: 'value', header: t('reports.table.value'), body: (rowData) => formatCurrency(rowData.value), sortable: true },
+    { field: 'stock_status', header: t('reports.table.status'), body: stockStatusBodyTemplate, sortable: true },
   ];
 
   // Chart Options
@@ -148,7 +148,7 @@ const Reports = () => {
       }),
     },
     yAxis: {
-      title: { text: 'Ventas' },
+      title: { text: t('reports.table.sales') },
     },
     tooltip: {
       pointFormatter: function () {
@@ -157,7 +157,7 @@ const Reports = () => {
     },
     series: [{
       type: 'column',
-      name: 'Ventas',
+      name: t('reports.table.sales'),
       data: monthlyData.sales.map(s => s.total),
     }],
   });
@@ -182,7 +182,7 @@ const Reports = () => {
     },
     series: [{
       type: 'pie',
-      name: 'Método de Pago',
+      name: t('reports.paymentMethod'),
       data: accountingData?.sales.by_payment_method.map(item => ({
         name: item.payment_method,
         y: item.total
@@ -197,7 +197,7 @@ const Reports = () => {
       categories: accountingData?.expenses.by_category.map(c => c.category_name) || [],
     },
     yAxis: {
-      title: { text: 'Total' },
+      title: { text: t('reports.table.total') },
     },
     tooltip: {
       pointFormatter: function () {
@@ -206,7 +206,7 @@ const Reports = () => {
     },
     series: [{
       type: 'bar',
-      name: 'Gastos',
+      name: t('reports.expenses'),
       data: accountingData?.expenses.by_category.map(c => c.total) || [],
       color: '#ef4444'
     }]
@@ -242,7 +242,7 @@ const Reports = () => {
             <div className="space-y-6">
               {/* Monthly Comparison Chart */}
               <div className="card">
-                <h3 className="text-lg font-semibold mb-4">Ventas Mensuales</h3>
+                <h3 className="text-lg font-semibold mb-4">{t('reports.monthlySales')}</h3>
                 <HighchartsReact highcharts={Highcharts} options={getMonthlySalesOptions()} />
               </div>
 
@@ -265,19 +265,19 @@ const Reports = () => {
               {/* Summary Cards */}
               <div className="grid grid-cols-4 gap-4">
                 <div className="card">
-                  <p className="text-sm text-slate-500">Productos</p>
+                  <p className="text-sm text-slate-500">{t('reports.table.product')}s</p>
                   <p className="text-2xl font-bold">{inventoryReport.total_products}</p>
                 </div>
                 <div className="card">
-                  <p className="text-sm text-slate-500">Valor Total</p>
+                  <p className="text-sm text-slate-500">{t('reports.summary.totalValue')}</p>
                   <p className="text-2xl font-bold">{formatCurrency(inventoryReport.total_value)}</p>
                 </div>
                 <div className="card bg-yellow-50 border-yellow-200">
-                  <p className="text-sm text-yellow-600">Stock Bajo</p>
+                  <p className="text-sm text-yellow-600">{t('inventory.lowStock')}</p>
                   <p className="text-2xl font-bold text-yellow-700">{inventoryReport.low_stock_count}</p>
                 </div>
                 <div className="card bg-red-50 border-red-200">
-                  <p className="text-sm text-red-600">Sin Stock</p>
+                  <p className="text-sm text-red-600">{t('inventory.outOfStock')}</p>
                   <p className="text-2xl font-bold text-red-700">{inventoryReport.out_of_stock_count}</p>
                 </div>
               </div>
@@ -332,21 +332,21 @@ const Reports = () => {
                   {/* Summary */}
                   <div className="grid grid-cols-3 gap-4">
                     <div className="card bg-green-50 border-green-200">
-                      <p className="text-sm text-green-600">Ventas</p>
+                      <p className="text-sm text-green-600">{t('reports.table.sales')}</p>
                       <p className="text-2xl font-bold text-green-700">
                         {formatCurrency(accountingData.sales.total)}
                       </p>
                       <p className="text-xs text-green-500 mt-1">
-                        {accountingData.sales.count} transacciones
+                        {accountingData.sales.count} {t('reports.transactions')}
                       </p>
                     </div>
                     <div className="card bg-red-50 border-red-200">
-                      <p className="text-sm text-red-600">Gastos</p>
+                      <p className="text-sm text-red-600">{t('reports.expenses')}</p>
                       <p className="text-2xl font-bold text-red-700">
                         {formatCurrency(accountingData.expenses.total)}
                       </p>
                       <p className="text-xs text-red-500 mt-1">
-                        {accountingData.expenses.count} gastos
+                        {accountingData.expenses.count} {t('reports.expensesCount')}
                       </p>
                     </div>
                     <div
@@ -359,7 +359,7 @@ const Reports = () => {
                         className={`text-sm ${accountingData.profit >= 0 ? 'text-emerald-600' : 'text-red-600'
                           }`}
                       >
-                        Utilidad
+                        {t('reports.profit')}
                       </p>
                       <p
                         className={`text-2xl font-bold ${accountingData.profit >= 0 ? 'text-emerald-700' : 'text-red-700'
@@ -374,35 +374,35 @@ const Reports = () => {
                   <div className="grid grid-cols-2 gap-6">
                     {/* Payment Methods */}
                     <div className="card">
-                      <h3 className="text-lg font-semibold mb-4">Ventas por Método de Pago</h3>
+                      <h3 className="text-lg font-semibold mb-4">{t('reports.salesByPaymentMethod')}</h3>
                       <HighchartsReact highcharts={Highcharts} options={getPaymentMethodsOptions()} />
                     </div>
 
                     {/* Expenses by Category */}
                     <div className="card">
-                      <h3 className="text-lg font-semibold mb-4">Gastos por Categoría</h3>
+                      <h3 className="text-lg font-semibold mb-4">{t('reports.expensesByCategory')}</h3>
                       <HighchartsReact highcharts={Highcharts} options={getExpensesByCategoryOptions()} />
                     </div>
                   </div>
 
                   {/* IGV Summary */}
                   <div className="card">
-                    <h3 className="text-lg font-semibold mb-4">Resumen IGV</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('reports.igvSummary')}</h3>
                     <div className="grid grid-cols-3 gap-4">
                       <div className="p-4 bg-slate-50 rounded-lg">
-                        <p className="text-sm text-slate-500">Subtotal Ventas</p>
+                        <p className="text-sm text-slate-500">{t('reports.subtotalSales')}</p>
                         <p className="text-xl font-bold">
                           {formatCurrency(accountingData.sales.subtotal)}
                         </p>
                       </div>
                       <div className="p-4 bg-slate-50 rounded-lg">
-                        <p className="text-sm text-slate-500">IGV (18%)</p>
+                        <p className="text-sm text-slate-500">{t('reports.igv')} (18%)</p>
                         <p className="text-xl font-bold">
                           {formatCurrency(accountingData.sales.igv)}
                         </p>
                       </div>
                       <div className="p-4 bg-primary-50 rounded-lg">
-                        <p className="text-sm text-primary-600">Total con IGV</p>
+                        <p className="text-sm text-primary-600">{t('reports.totalWithIgv')}</p>
                         <p className="text-xl font-bold text-primary-700">
                           {formatCurrency(accountingData.sales.total)}
                         </p>

@@ -171,7 +171,7 @@ const Dashboard = () => {
     },
     series: [{
       type: 'area',
-      name: 'Ventas',
+      name: t('dashboard.sales'),
       data: salesChart.map(d => d.total),
       color: '#1e40af',
       fillColor: {
@@ -210,10 +210,10 @@ const Dashboard = () => {
     },
     series: [{
       type: 'pie',
-      name: 'Ventas',
+      name: t('dashboard.sales'),
       innerSize: '50%',
       data: categorySales.map(c => ({
-        name: c.category_name || t('dashboard.noCategory'),
+        name: t(c.category_name) || t('dashboard.noCategory'),
         y: c.total
       }))
     }]
@@ -235,7 +235,7 @@ const Dashboard = () => {
     },
     series: [{
       type: 'bar',
-      name: 'Ingresos',
+      name: t('dashboard.revenue'),
       data: topProducts.map(p => p.total_revenue),
       color: '#3b82f6'
     }]

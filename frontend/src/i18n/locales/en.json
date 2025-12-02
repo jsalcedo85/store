@@ -180,7 +180,33 @@
     "from": "From",
     "to": "To",
     "generate": "Generate Report",
-    "export": "Export"
+    "export": "Export",
+    "monthlySales": "Monthly Sales",
+    "paymentMethod": "Payment Method",
+    "expenses": "Expenses",
+    "expensesByCategory": "Expenses by Category",
+    "igvSummary": "IGV Summary",
+    "subtotalSales": "Sales Subtotal",
+    "igv": "IGV",
+    "totalWithIgv": "Total with IGV",
+    "profit": "Profit",
+    "transactions": "transactions",
+    "expensesCount": "expenses",
+    "salesByPaymentMethod": "Sales by Payment Method",
+    "summary": {
+      "totalValue": "Total Value",
+      "products": "Products"
+    },
+    "table": {
+      "seller": "Seller",
+      "sales": "Sales",
+      "total": "Total",
+      "sku": "SKU",
+      "product": "Product",
+      "quantity": "Quantity",
+      "value": "Value",
+      "status": "Status"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -269,5 +295,6 @@
     "loadError": "Could not load users",
     "confirmDelete": "Are you sure you want to delete this user?",
     "accessDenied": "Only administrators can access this page"
-  }
+  },
+  "Electrónicos": "Electronics"
 }

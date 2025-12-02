@@ -180,7 +180,33 @@
     "from": "Desde",
     "to": "Hasta",
     "generate": "Generar Reporte",
-    "export": "Exportar"
+    "export": "Exportar",
+    "monthlySales": "Ventas Mensuales",
+    "paymentMethod": "Método de Pago",
+    "expenses": "Gastos",
+    "expensesByCategory": "Gastos por Categoría",
+    "igvSummary": "Resumen IGV",
+    "subtotalSales": "Subtotal Ventas",
+    "igv": "IGV",
+    "totalWithIgv": "Total con IGV",
+    "profit": "Utilidad",
+    "transactions": "transacciones",
+    "expensesCount": "gastos",
+    "salesByPaymentMethod": "Ventas por Método de Pago",
+    "summary": {
+      "totalValue": "Valor Total",
+      "products": "Productos"
+    },
+    "table": {
+      "seller": "Vendedor",
+      "sales": "Ventas",
+      "total": "Total",
+      "sku": "SKU",
+      "product": "Producto",
+      "quantity": "Cantidad",
+      "value": "Valor",
+      "status": "Estado"
+    }
   },
   "settings": {
     "title": "Configuración",
@@ -269,5 +295,6 @@
     "loadError": "No se pudieron cargar los usuarios",
     "confirmDelete": "¿Estás seguro de eliminar este usuario?",
     "accessDenied": "Solo los administradores pueden acceder a esta página"
-  }
+  },
+  "Electrónicos": "Electrónicos"
 }
