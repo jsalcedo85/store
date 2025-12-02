@@ -86,6 +86,11 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
     </svg>
   ),
+  users: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+  ),
 };
 
 const Layout = ({ children }: LayoutProps) => {
@@ -105,6 +110,7 @@ const Layout = ({ children }: LayoutProps) => {
     { path: '/quotes', label: t('nav.quotes'), icon: Icons.quotes },
     { path: '/invoices', label: t('nav.invoices'), icon: Icons.invoices },
     { path: '/reports', label: t('nav.reports'), icon: Icons.reports },
+    ...(user?.role === 'admin' ? [{ path: '/users', label: t('nav.users'), icon: Icons.users }] : []),
     { path: '/settings', label: t('nav.settings'), icon: Icons.settings },
   ];
 
@@ -118,9 +124,8 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen flex bg-slate-100">
       {/* Sidebar */}
       <aside
-        className={`${
-          sidebarOpen ? 'w-64' : 'w-20'
-        } bg-slate-900 text-white transition-all duration-300 flex flex-col shadow-xl`}
+        className={`${sidebarOpen ? 'w-64' : 'w-20'
+          } bg-slate-900 text-white transition-all duration-300 flex flex-col shadow-xl`}
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-700/50">
@@ -150,11 +155,10 @@ const Layout = ({ children }: LayoutProps) => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                }`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  }`}
                 title={!sidebarOpen ? item.label : undefined}
               >
                 <span className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-white'}`}>

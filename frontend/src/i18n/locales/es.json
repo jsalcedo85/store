@@ -49,6 +49,7 @@
     "quotes": "Cotizaciones",
     "invoices": "Comprobantes",
     "reports": "Reportes",
+    "users": "Usuarios",
     "settings": "Configuración"
   },
   "dashboard": {
@@ -175,7 +176,10 @@
     "currentPassword": "Contraseña Actual",
     "newPassword": "Nueva Contraseña",
     "confirmPassword": "Confirmar Contraseña"
+  },
+  "roles": {
+    "admin": "Administrador",
+    "seller": "Vendedor",
+    "accountant": "Contador"
   }
 }
-
-

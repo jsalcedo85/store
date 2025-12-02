@@ -25,20 +25,20 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
+
       const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
         try {
           const response = await axios.post(`${APP_CONFIG.apiUrl}/token/refresh/`, {
             refresh: refreshToken,
           });
-          
+
           const { access } = response.data;
           localStorage.setItem('access_token', access);
-          
+
           originalRequest.headers.Authorization = `Bearer ${access}`;
           return api(originalRequest);
         } catch {
@@ -48,7 +48,7 @@ api.interceptors.response.use(
         }
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -65,6 +65,11 @@ export const authAPI = {
   updateProfile: (data: Record<string, unknown>) => api.put('/users/update_profile/', data),
   changePassword: (data: { old_password: string; new_password: string }) =>
     api.post('/users/change_password/', data),
+  // Generic HTTP methods for user management
+  get: (url: string) => api.get(url),
+  post: (url: string, data: Record<string, unknown>) => api.post(url, data),
+  put: (url: string, data: Record<string, unknown>) => api.put(url, data),
+  delete: (url: string) => api.delete(url),
 };
 
 // Products API
@@ -142,13 +147,13 @@ export const reportsAPI = {
   getDashboard: () => api.get('/reports/dashboard/'),
   getSalesChart: (days?: number) => api.get('/reports/sales-chart/', { params: { days } }),
   getSalesByCategory: (days?: number) => api.get('/reports/sales-by-category/', { params: { days } }),
-  getTopProducts: (days?: number, limit?: number) => 
+  getTopProducts: (days?: number, limit?: number) =>
     api.get('/reports/top-products/', { params: { days, limit } }),
   getSalesBySeller: (days?: number) => api.get('/reports/sales-by-seller/', { params: { days } }),
   getInventoryReport: () => api.get('/reports/inventory/'),
-  getMonthlyComparison: (months?: number) => 
+  getMonthlyComparison: (months?: number) =>
     api.get('/reports/monthly-comparison/', { params: { months } }),
-  getAccountingReport: (params?: Record<string, string>) => 
+  getAccountingReport: (params?: Record<string, string>) =>
     api.get('/reports/accounting/', { params }),
 };
 

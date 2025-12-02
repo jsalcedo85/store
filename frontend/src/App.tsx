@@ -13,6 +13,7 @@ import Quotes from './pages/Quotes';
 import Invoices from './pages/Invoices';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import Users from './pages/Users';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -52,6 +53,7 @@ function App() {
                 <Route path="/quotes" element={<Quotes />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/reports" element={<Reports />} />
+                <Route path="/users" element={<Users />} />
                 <Route path="/settings" element={<Settings />} />
               </Routes>
             </Layout>

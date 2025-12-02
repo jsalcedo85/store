@@ -49,6 +49,7 @@
     "quotes": "Quotes",
     "invoices": "Invoices",
     "reports": "Reports",
+    "users": "Users",
     "settings": "Settings"
   },
   "dashboard": {
@@ -175,7 +176,10 @@
     "currentPassword": "Current Password",
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "seller": "Seller",
+    "accountant": "Accountant"
   }
 }
-
-
