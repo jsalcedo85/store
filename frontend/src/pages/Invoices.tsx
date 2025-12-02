@@ -92,8 +92,8 @@ const Invoices = () => {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="card flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-2xl">
-            🧾
+          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-2xl text-blue-600">
+            <i className="pi pi-ticket"></i>
           </div>
           <div>
             <p className="text-2xl font-bold">{countByType.boleta}</p>
@@ -101,8 +101,8 @@ const Invoices = () => {
           </div>
         </div>
         <div className="card flex items-center gap-4">
-          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-2xl">
-            📄
+          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-2xl text-green-600">
+            <i className="pi pi-file-pdf"></i>
           </div>
           <div>
             <p className="text-2xl font-bold">{countByType.factura}</p>
@@ -110,8 +110,8 @@ const Invoices = () => {
           </div>
         </div>
         <div className="card flex items-center gap-4">
-          <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-2xl">
-            📝
+          <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-2xl text-yellow-600">
+            <i className="pi pi-file-edit"></i>
           </div>
           <div>
             <p className="text-2xl font-bold">{countByType.nota_venta}</p>

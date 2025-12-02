@@ -1,23 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from 'recharts';
+import Highcharts from 'highcharts';
+import HighchartsReact from 'highcharts-react-official';
 import { reportsAPI } from '../services/api';
 import { formatCurrency } from '../config/app.config';
 import { DataTable, DataTableColumn } from '../components/DataTable';
 import { Tag } from 'primereact/tag';
+import { applyHighchartsTheme } from '../components/HighchartsTheme';
+
+// Apply theme globally
+applyHighchartsTheme();
 
 interface SellerData {
   seller_name: string;
@@ -62,8 +54,6 @@ interface AccountingData {
   };
   profit: number;
 }
-
-const COLORS = ['#1e40af', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
 
 const Reports = () => {
   const { t } = useTranslation();
@@ -112,9 +102,9 @@ const Reports = () => {
   };
 
   const tabs = [
-    { id: 'sales', label: t('reports.salesReport'), icon: '📈' },
-    { id: 'inventory', label: t('reports.inventoryReport'), icon: '📦' },
-    { id: 'accounting', label: t('reports.accountingReport'), icon: '🧮' },
+    { id: 'sales', label: t('reports.salesReport'), icon: 'pi pi-chart-line' },
+    { id: 'inventory', label: t('reports.inventoryReport'), icon: 'pi pi-box' },
+    { id: 'accounting', label: t('reports.accountingReport'), icon: 'pi pi-calculator' },
   ];
 
   // Column templates for Seller Table
@@ -146,6 +136,78 @@ const Reports = () => {
     { field: 'stock_status', header: 'Estado', body: stockStatusBodyTemplate, sortable: true },
   ];
 
+  // Chart Options
+  const getMonthlySalesOptions = (): Highcharts.Options => ({
+    chart: { type: 'column', height: 320 },
+    title: { text: '' },
+    xAxis: {
+      categories: monthlyData.sales.map(s => new Date(s.month).toLocaleDateString('es', { month: 'short', year: '2-digit' })),
+    },
+    yAxis: {
+      title: { text: 'Ventas' },
+    },
+    tooltip: {
+      pointFormatter: function () {
+        return `<span style="color:${this.color}">\u25CF</span> ${this.series.name}: <b>${formatCurrency(this.y || 0)}</b><br/>`;
+      }
+    },
+    series: [{
+      type: 'column',
+      name: 'Ventas',
+      data: monthlyData.sales.map(s => s.total),
+    }],
+  });
+
+  const getPaymentMethodsOptions = (): Highcharts.Options => ({
+    chart: { type: 'pie', height: 300 },
+    title: { text: '' },
+    tooltip: {
+      pointFormatter: function () {
+        return `<b>${this.name}</b>: ${formatCurrency(this.y || 0)} (${this.percentage?.toFixed(1)}%)`;
+      }
+    },
+    plotOptions: {
+      pie: {
+        allowPointSelect: true,
+        cursor: 'pointer',
+        dataLabels: {
+          enabled: true,
+          format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+        }
+      }
+    },
+    series: [{
+      type: 'pie',
+      name: 'Método de Pago',
+      data: accountingData?.sales.by_payment_method.map(item => ({
+        name: item.payment_method,
+        y: item.total
+      })) || []
+    }]
+  });
+
+  const getExpensesByCategoryOptions = (): Highcharts.Options => ({
+    chart: { type: 'bar', height: 300 },
+    title: { text: '' },
+    xAxis: {
+      categories: accountingData?.expenses.by_category.map(c => c.category_name) || [],
+    },
+    yAxis: {
+      title: { text: 'Total' },
+    },
+    tooltip: {
+      pointFormatter: function () {
+        return `<span style="color:${this.color}">\u25CF</span> ${this.series.name}: <b>${formatCurrency(this.y || 0)}</b><br/>`;
+      }
+    },
+    series: [{
+      type: 'bar',
+      name: 'Gastos',
+      data: accountingData?.expenses.by_category.map(c => c.total) || [],
+      color: '#ef4444'
+    }]
+  });
+
   return (
     <div className="space-y-6">
       {/* Tabs */}
@@ -154,12 +216,12 @@ const Reports = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === tab.id
-              ? 'bg-primary-600 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center ${activeTab === tab.id
+                ? 'bg-primary-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
           >
-            <span className="mr-2">{tab.icon}</span>
+            <i className={`${tab.icon} mr-2`}></i>
             {tab.label}
           </button>
         ))}
@@ -177,23 +239,7 @@ const Reports = () => {
               {/* Monthly Comparison Chart */}
               <div className="card">
                 <h3 className="text-lg font-semibold mb-4">Ventas Mensuales</h3>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={monthlyData.sales.map((s) => ({
-                        month: new Date(s.month).toLocaleDateString('es', { month: 'short', year: '2-digit' }),
-                        ventas: s.total,
-                        cantidad: s.count,
-                      }))}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
-                      <YAxis stroke="#94a3b8" fontSize={12} />
-                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                      <Bar dataKey="ventas" fill="#1e40af" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <HighchartsReact highcharts={Highcharts} options={getMonthlySalesOptions()} />
               </div>
 
               {/* Sales by Seller */}
@@ -301,8 +347,8 @@ const Reports = () => {
                     </div>
                     <div
                       className={`card ${accountingData.profit >= 0
-                        ? 'bg-emerald-50 border-emerald-200'
-                        : 'bg-red-50 border-red-200'
+                          ? 'bg-emerald-50 border-emerald-200'
+                          : 'bg-red-50 border-red-200'
                         }`}
                     >
                       <p
@@ -325,52 +371,13 @@ const Reports = () => {
                     {/* Payment Methods */}
                     <div className="card">
                       <h3 className="text-lg font-semibold mb-4">Ventas por Método de Pago</h3>
-                      <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={accountingData.sales.by_payment_method}
-                              dataKey="total"
-                              nameKey="payment_method"
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={80}
-                              label
-                            >
-                              {accountingData.sales.by_payment_method.map((_, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                              ))}
-                            </Pie>
-                            <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                            <Legend />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
+                      <HighchartsReact highcharts={Highcharts} options={getPaymentMethodsOptions()} />
                     </div>
 
                     {/* Expenses by Category */}
                     <div className="card">
                       <h3 className="text-lg font-semibold mb-4">Gastos por Categoría</h3>
-                      <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={accountingData.expenses.by_category}
-                            layout="vertical"
-                          >
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis type="number" stroke="#94a3b8" fontSize={12} />
-                            <YAxis
-                              type="category"
-                              dataKey="category_name"
-                              stroke="#94a3b8"
-                              fontSize={12}
-                              width={100}
-                            />
-                            <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                            <Bar dataKey="total" fill="#ef4444" radius={[0, 4, 4, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
+                      <HighchartsReact highcharts={Highcharts} options={getExpensesByCategoryOptions()} />
                     </div>
                   </div>
 

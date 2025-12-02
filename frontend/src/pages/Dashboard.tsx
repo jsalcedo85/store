@@ -1,21 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
+import Highcharts from 'highcharts';
+import HighchartsReact from 'highcharts-react-official';
 import { reportsAPI } from '../services/api';
 import { formatCurrency } from '../config/app.config';
+import { applyHighchartsTheme } from '../components/HighchartsTheme';
+
+// Apply theme globally
+applyHighchartsTheme();
 
 interface DashboardData {
   sales_today: { total: number; count: number };
@@ -44,8 +36,6 @@ interface CategorySales {
   category_name: string;
   total: number;
 }
-
-const COLORS = ['#1e40af', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
 
 // Datos de ejemplo cuando no hay datos reales
 const SAMPLE_DASHBOARD: DashboardData = {
@@ -85,9 +75,9 @@ const Dashboard = () => {
         setCategorySales(categoryRes.data || []);
       } catch (err: any) {
         console.error('Error fetching dashboard data:', err);
-        
+
         let errorMessage = 'Error al cargar los datos del panel';
-        
+
         if (err?.code === 'ERR_NETWORK' || err?.message?.includes('Network Error')) {
           errorMessage = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo.';
         } else if (err?.response?.status === 401) {
@@ -105,7 +95,7 @@ const Dashboard = () => {
         } else if (err?.message) {
           errorMessage = err.message;
         }
-        
+
         setError(errorMessage);
         // Usar datos de ejemplo en caso de error
         setDashboardData(SAMPLE_DASHBOARD);
@@ -133,31 +123,123 @@ const Dashboard = () => {
       value: formatCurrency(dashboardData.sales_today.total),
       subValue: `${dashboardData.sales_today.count} ${t('dashboard.sales')}`,
       trend: 'neutral',
+      icon: 'pi pi-shopping-cart'
     },
     {
       label: t('dashboard.salesMonth'),
       value: formatCurrency(dashboardData.sales_month.total),
       subValue: `${dashboardData.sales_month.count} ${t('dashboard.sales')}`,
       trend: 'up',
+      icon: 'pi pi-chart-line'
     },
     {
       label: t('dashboard.expensesMonth'),
       value: formatCurrency(dashboardData.expenses_month),
       trend: 'neutral',
+      icon: 'pi pi-wallet'
     },
     {
       label: t('dashboard.profitMonth'),
       value: formatCurrency(dashboardData.profit_month),
       trend: dashboardData.profit_month >= 0 ? 'up' : 'down',
+      icon: 'pi pi-money-bill'
     },
   ];
 
   const quickStats = [
-    { label: t('dashboard.lowStock'), value: dashboardData.low_stock_count },
-    { label: t('dashboard.activeClients'), value: dashboardData.active_clients },
-    { label: t('dashboard.activeProducts'), value: dashboardData.active_products },
-    { label: t('dashboard.pendingQuotes'), value: dashboardData.pending_quotes },
+    { label: t('dashboard.lowStock'), value: dashboardData.low_stock_count, icon: 'pi pi-exclamation-triangle', color: 'text-yellow-600', bg: 'bg-yellow-50' },
+    { label: t('dashboard.activeClients'), value: dashboardData.active_clients, icon: 'pi pi-users', color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: t('dashboard.activeProducts'), value: dashboardData.active_products, icon: 'pi pi-box', color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: t('dashboard.pendingQuotes'), value: dashboardData.pending_quotes, icon: 'pi pi-file', color: 'text-gray-600', bg: 'bg-gray-50' },
   ];
+
+  // Chart Options
+  const getSalesChartOptions = (): Highcharts.Options => ({
+    chart: { type: 'area', height: 280 },
+    title: { text: '' },
+    xAxis: {
+      categories: salesChart.map(d => new Date(d.date).toLocaleDateString(getLocale(), { day: '2-digit', month: 'short' })),
+      tickInterval: Math.ceil(salesChart.length / 10),
+    },
+    yAxis: {
+      title: { text: '' },
+    },
+    tooltip: {
+      pointFormatter: function () {
+        return `<span style="color:${this.color}">\u25CF</span> ${this.series.name}: <b>${formatCurrency(this.y || 0)}</b><br/>`;
+      }
+    },
+    series: [{
+      type: 'area',
+      name: 'Ventas',
+      data: salesChart.map(d => d.total),
+      color: '#1e40af',
+      fillColor: {
+        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+        stops: [
+          [0, 'rgba(30, 64, 175, 0.5)'],
+          [1, 'rgba(30, 64, 175, 0.0)']
+        ]
+      }
+    }],
+  });
+
+  const getCategoryChartOptions = (): Highcharts.Options => ({
+    chart: { type: 'pie', height: 280 },
+    title: { text: '' },
+    tooltip: {
+      pointFormatter: function () {
+        return `<b>${this.name}</b>: ${formatCurrency(this.y || 0)} (${this.percentage?.toFixed(1)}%)`;
+      }
+    },
+    plotOptions: {
+      pie: {
+        allowPointSelect: true,
+        cursor: 'pointer',
+        dataLabels: {
+          enabled: false
+        },
+        showInLegend: true
+      }
+    },
+    legend: {
+      enabled: true,
+      layout: 'vertical',
+      align: 'right',
+      verticalAlign: 'middle'
+    },
+    series: [{
+      type: 'pie',
+      name: 'Ventas',
+      innerSize: '50%',
+      data: categorySales.map(c => ({
+        name: c.category_name || t('dashboard.noCategory'),
+        y: c.total
+      }))
+    }]
+  });
+
+  const getTopProductsOptions = (): Highcharts.Options => ({
+    chart: { type: 'bar', height: 250 },
+    title: { text: '' },
+    xAxis: {
+      categories: topProducts.map(p => p.product_name.length > 20 ? `${p.product_name.substring(0, 20)}...` : p.product_name),
+    },
+    yAxis: {
+      title: { text: '' },
+    },
+    tooltip: {
+      pointFormatter: function () {
+        return `<span style="color:${this.color}">\u25CF</span> ${this.series.name}: <b>${formatCurrency(this.y || 0)}</b><br/>`;
+      }
+    },
+    series: [{
+      type: 'bar',
+      name: 'Ingresos',
+      data: topProducts.map(p => p.total_revenue),
+      color: '#3b82f6'
+    }]
+  });
 
   return (
     <div className="space-y-6">
@@ -165,9 +247,7 @@ const Dashboard = () => {
         <div className="bg-red-50 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded-lg">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
+              <i className="pi pi-times-circle text-red-400 text-xl"></i>
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium">{error}</p>
@@ -187,16 +267,18 @@ const Dashboard = () => {
           <div key={index} className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-slate-500">{stat.label}</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{stat.value}</p>
+                <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <i className={`${stat.icon} text-slate-400`}></i>
+                  {stat.label}
+                </p>
+                <p className="text-2xl font-bold text-slate-900 mt-2">{stat.value}</p>
                 {stat.subValue && (
                   <p className="text-xs text-slate-400 mt-1">{stat.subValue}</p>
                 )}
               </div>
-              <div className={`w-2 h-12 rounded-full ${
-                stat.trend === 'up' ? 'bg-emerald-500' : 
-                stat.trend === 'down' ? 'bg-red-500' : 'bg-slate-300'
-              }`} />
+              <div className={`w-2 h-12 rounded-full ${stat.trend === 'up' ? 'bg-emerald-500' :
+                  stat.trend === 'down' ? 'bg-red-500' : 'bg-slate-300'
+                }`} />
             </div>
           </div>
         ))}
@@ -205,9 +287,14 @@ const Dashboard = () => {
       {/* Quick Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {quickStats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
-            <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
-            <p className="text-sm text-slate-500 mt-1">{stat.label}</p>
+          <div key={index} className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+              <p className="text-sm text-slate-500 mt-1">{stat.label}</p>
+            </div>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${stat.bg}`}>
+              <i className={`${stat.icon} ${stat.color} text-lg`}></i>
+            </div>
           </div>
         ))}
       </div>
@@ -219,31 +306,7 @@ const Dashboard = () => {
           <h3 className="text-base font-semibold text-slate-800 mb-4">{t('dashboard.salesChart')}</h3>
           <div className="h-72">
             {salesChart.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesChart}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value) => new Date(value).toLocaleDateString(getLocale(), { day: '2-digit', month: 'short' })}
-                    stroke="#94a3b8"
-                    fontSize={11}
-                  />
-                  <YAxis stroke="#94a3b8" fontSize={11} />
-                  <Tooltip
-                    formatter={(value: number) => [formatCurrency(value), 'Total']}
-                    labelFormatter={(label) => new Date(label).toLocaleDateString(getLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}
-                    contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="total"
-                    stroke="#1e40af"
-                    strokeWidth={2}
-                    dot={{ fill: '#1e40af', strokeWidth: 2, r: 3 }}
-                    activeDot={{ r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <HighchartsReact highcharts={Highcharts} options={getSalesChartOptions()} />
             ) : (
               <div className="flex items-center justify-center h-full text-slate-400 text-sm">
                 {t('dashboard.noData')}
@@ -257,30 +320,7 @@ const Dashboard = () => {
           <h3 className="text-base font-semibold text-slate-800 mb-4">{t('dashboard.salesByCategory')}</h3>
           <div className="h-72">
             {categorySales.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categorySales}
-                    dataKey="total"
-                    nameKey="category_name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    label={({ category_name, percent }) => 
-                      `${category_name || t('dashboard.noCategory')}: ${(percent * 100).toFixed(0)}%`
-                    }
-                    labelLine={false}
-                  >
-                    {categorySales.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => formatCurrency(value)} 
-                    contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <HighchartsReact highcharts={Highcharts} options={getCategoryChartOptions()} />
             ) : (
               <div className="flex items-center justify-center h-full text-slate-400 text-sm">
                 {t('dashboard.noData')}
@@ -295,28 +335,7 @@ const Dashboard = () => {
         <h3 className="text-base font-semibold text-slate-800 mb-4">{t('dashboard.topProducts')}</h3>
         <div className="h-64">
           {topProducts.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topProducts} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis type="number" stroke="#94a3b8" fontSize={11} />
-                <YAxis
-                  type="category"
-                  dataKey="product_name"
-                  stroke="#94a3b8"
-                  fontSize={11}
-                  width={150}
-                  tickFormatter={(value) => value.length > 20 ? `${value.substring(0, 20)}...` : value}
-                />
-                <Tooltip
-                  formatter={(value: number, name: string) => [
-                    name === 'total_sold' ? `${value} ${t('dashboard.units')}` : formatCurrency(value),
-                    name === 'total_sold' ? t('dashboard.quantity') : t('dashboard.revenue'),
-                  ]}
-                  contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                />
-                <Bar dataKey="total_sold" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <HighchartsReact highcharts={Highcharts} options={getTopProductsOptions()} />
           ) : (
             <div className="flex items-center justify-center h-full text-slate-400 text-sm">
               {t('dashboard.noData')}
