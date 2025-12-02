@@ -55,8 +55,8 @@ const Users = () => {
             setUsers([]);
             toast.current?.show({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'No se pudieron cargar los usuarios',
+                summary: t('messages.error'),
+                detail: t('users.loadError'),
                 life: 3000,
             });
         } finally {
@@ -71,16 +71,16 @@ const Users = () => {
                 await authAPI.put(`/users/${editingUser.id}/`, formData);
                 toast.current?.show({
                     severity: 'success',
-                    summary: 'Éxito',
-                    detail: 'Usuario actualizado correctamente',
+                    summary: t('messages.success'),
+                    detail: t('users.userUpdated'),
                     life: 3000,
                 });
             } else {
                 await authAPI.post('/users/', formData);
                 toast.current?.show({
                     severity: 'success',
-                    summary: 'Éxito',
-                    detail: 'Usuario creado correctamente',
+                    summary: t('messages.success'),
+                    detail: t('users.userCreated'),
                     life: 3000,
                 });
             }
@@ -91,22 +91,22 @@ const Users = () => {
             console.error('Error saving user:', error);
             toast.current?.show({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'No se pudo guardar el usuario',
+                summary: t('messages.error'),
+                detail: t('users.saveError'),
                 life: 3000,
             });
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Estás seguro de eliminar este usuario?')) return;
+        if (!window.confirm(t('users.confirmDelete'))) return;
 
         try {
             await authAPI.delete(`/users/${id}/`);
             toast.current?.show({
                 severity: 'success',
-                summary: 'Éxito',
-                detail: 'Usuario eliminado correctamente',
+                summary: t('messages.success'),
+                detail: t('users.userDeleted'),
                 life: 3000,
             });
             await fetchUsers();
@@ -114,8 +114,8 @@ const Users = () => {
             console.error('Error deleting user:', error);
             toast.current?.show({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'No se pudo eliminar el usuario',
+                summary: t('messages.error'),
+                detail: t('users.deleteError'),
                 life: 3000,
             });
         }
@@ -190,7 +190,7 @@ const Users = () => {
     const statusBodyTemplate = (rowData: User) => {
         return (
             <Tag
-                value={rowData.is_active ? 'Activo' : 'Inactivo'}
+                value={rowData.is_active ? t('common.active') : t('common.inactive')}
                 severity={rowData.is_active ? 'success' : 'danger'}
             />
         );
@@ -205,7 +205,7 @@ const Users = () => {
                     text
                     severity="info"
                     onClick={() => openEditModal(rowData)}
-                    tooltip="Editar"
+                    tooltip={t('buttons.edit')}
                     tooltipOptions={{ position: 'top' }}
                 />
                 <Button
@@ -215,7 +215,7 @@ const Users = () => {
                     severity="danger"
                     onClick={() => handleDelete(rowData.id)}
                     disabled={rowData.id === currentUser?.id}
-                    tooltip="Eliminar"
+                    tooltip={t('buttons.delete')}
                     tooltipOptions={{ position: 'top' }}
                 />
             </div>
@@ -229,12 +229,12 @@ const Users = () => {
                 <InputText
                     value={globalFilter}
                     onChange={(e) => setGlobalFilter(e.target.value)}
-                    placeholder="Buscar usuarios..."
+                    placeholder={t('users.searchPlaceholder')}
                     className="w-80"
                 />
             </span>
             <Button
-                label="Nuevo Usuario"
+                label={t('users.newUser')}
                 icon="pi pi-plus"
                 onClick={openCreateModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white border-0"
@@ -246,8 +246,8 @@ const Users = () => {
     if (currentUser?.role !== 'admin') {
         return (
             <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-slate-700">Acceso Denegado</h2>
-                <p className="text-slate-600 mt-2">Solo los administradores pueden acceder a esta página.</p>
+                <h2 className="text-2xl font-bold text-slate-700">{t('messages.accessDenied')}</h2>
+                <p className="text-slate-600 mt-2">{t('users.accessDenied')}</p>
             </div>
         );
     }
@@ -258,8 +258,8 @@ const Users = () => {
 
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-slate-800">Gestión de Usuarios</h1>
-                <p className="text-slate-600 mt-1">Administra los usuarios del sistema</p>
+                <h1 className="text-2xl font-bold text-slate-800">{t('users.title')}</h1>
+                <p className="text-slate-600 mt-1">{t('users.subtitle')}</p>
             </div>
 
             {/* DataTable */}
@@ -272,16 +272,16 @@ const Users = () => {
                     rowsPerPageOptions={[5, 10, 25, 50]}
                     globalFilter={globalFilter}
                     header={header}
-                    emptyMessage="No se encontraron usuarios"
+                    emptyMessage={t('users.notFound')}
                     className="p-datatable-sm"
                     stripedRows
                 >
-                    <Column field="username" header="Usuario" body={userBodyTemplate} sortable></Column>
-                    <Column field="email" header="Email" sortable></Column>
-                    <Column field="role" header="Rol" body={roleBodyTemplate} sortable></Column>
-                    <Column field="phone" header="Teléfono" body={(rowData) => rowData.phone || '-'}></Column>
-                    <Column field="is_active" header="Estado" body={statusBodyTemplate} sortable></Column>
-                    <Column header="Acciones" body={actionsBodyTemplate} style={{ width: '120px' }}></Column>
+                    <Column field="username" header={t('form.username')} body={userBodyTemplate} sortable></Column>
+                    <Column field="email" header={t('form.email')} sortable></Column>
+                    <Column field="role" header={t('form.role')} body={roleBodyTemplate} sortable></Column>
+                    <Column field="phone" header={t('form.phone')} body={(rowData) => rowData.phone || '-'}></Column>
+                    <Column field="is_active" header={t('form.status')} body={statusBodyTemplate} sortable></Column>
+                    <Column header={t('table.actions')} body={actionsBodyTemplate} style={{ width: '120px' }}></Column>
                 </DataTable>
             </div>
 
@@ -290,11 +290,11 @@ const Users = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-lg max-w-md w-full p-6">
                         <h2 className="text-xl font-bold text-slate-800 mb-4">
-                            {editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}
+                            {editingUser ? t('users.editUser') : t('users.newUser')}
                         </h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">{t('form.username')}</label>
                                 <InputText
                                     value={formData.username}
                                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -304,7 +304,7 @@ const Users = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">{t('form.email')}</label>
                                 <InputText
                                     type="email"
                                     value={formData.email}
@@ -315,7 +315,7 @@ const Users = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('form.firstName')}</label>
                                     <InputText
                                         value={formData.first_name}
                                         onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
@@ -323,7 +323,7 @@ const Users = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('form.lastName')}</label>
                                     <InputText
                                         value={formData.last_name}
                                         onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
@@ -332,7 +332,7 @@ const Users = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Rol</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">{t('form.role')}</label>
                                 <select
                                     value={formData.role}
                                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -344,7 +344,7 @@ const Users = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">{t('form.phone')}</label>
                                 <InputText
                                     type="tel"
                                     value={formData.phone}
@@ -354,7 +354,7 @@ const Users = () => {
                             </div>
                             {!editingUser && (
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('form.password')}</label>
                                     <InputText
                                         type="password"
                                         value={formData.password}
@@ -362,20 +362,20 @@ const Users = () => {
                                         className="w-full"
                                         required={!editingUser}
                                         minLength={12}
-                                        placeholder="Mínimo 12 caracteres"
+                                        placeholder={t('form.passwordPlaceholder')}
                                     />
                                 </div>
                             )}
                             <div className="flex gap-3 pt-4">
                                 <Button
                                     type="button"
-                                    label="Cancelar"
+                                    label={t('buttons.cancel')}
                                     onClick={() => setShowModal(false)}
                                     className="flex-1 bg-white text-slate-700 border border-slate-300 hover:bg-slate-50"
                                 />
                                 <Button
                                     type="submit"
-                                    label={editingUser ? 'Guardar' : 'Crear'}
+                                    label={editingUser ? t('buttons.save') : t('buttons.create')}
                                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
                                 />
                             </div>

@@ -26,7 +26,11 @@
     "name": "Nombre",
     "email": "Correo electrónico",
     "phone": "Teléfono",
-    "address": "Dirección"
+    "address": "Dirección",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "username": "Usuario",
+    "role": "Rol"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -181,5 +185,77 @@
     "admin": "Administrador",
     "seller": "Vendedor",
     "accountant": "Contador"
+  },
+  "buttons": {
+    "new": "Nuevo",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "close": "Cerrar",
+    "back": "Volver"
+  },
+  "table": {
+    "actions": "Acciones",
+    "search": "Buscar...",
+    "noResults": "No se encontraron resultados",
+    "rowsPerPage": "Filas por página",
+    "loading": "Cargando...",
+    "of": "de"
+  },
+  "messages": {
+    "success": "Éxito",
+    "error": "Error",
+    "warning": "Advertencia",
+    "info": "Información",
+    "loading": "Cargando...",
+    "noData": "No hay datos disponibles",
+    "confirmDelete": "¿Estás seguro de eliminar este elemento?",
+    "accessDenied": "Acceso Denegado",
+    "notAuthorized": "No tienes permisos para realizar esta acción",
+    "saveSuccess": "Guardado correctamente",
+    "saveError": "No se pudo guardar",
+    "updateSuccess": "Actualizado correctamente",
+    "updateError": "No se pudo actualizar",
+    "deleteSuccess": "Eliminado correctamente",
+    "deleteError": "No se pudo eliminar",
+    "loadError": "No se pudieron cargar los datos"
+  },
+  "form": {
+    "email": "Email",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "username": "Usuario",
+    "role": "Rol",
+    "status": "Estado",
+    "dateFrom": "Desde",
+    "dateTo": "Hasta",
+    "passwordPlaceholder": "Mínimo 12 caracteres"
+  },
+  "users": {
+    "title": "Gestión de Usuarios",
+    "subtitle": "Administra los usuarios del sistema",
+    "newUser": "Nuevo Usuario",
+    "editUser": "Editar Usuario",
+    "searchPlaceholder": "Buscar usuarios...",
+    "notFound": "No se encontraron usuarios",
+    "userCreated": "Usuario creado correctamente",
+    "userUpdated": "Usuario actualizado correctamente",
+    "userDeleted": "Usuario eliminado correctamente",
+    "saveError": "No se pudo guardar el usuario",
+    "deleteError": "No se pudo eliminar el usuario",
+    "loadError": "No se pudieron cargar los usuarios",
+    "confirmDelete": "¿Estás seguro de eliminar este usuario?",
+    "accessDenied": "Solo los administradores pueden acceder a esta página"
   }
 }
