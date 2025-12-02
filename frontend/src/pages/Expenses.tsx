@@ -111,7 +111,7 @@ const Expenses = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('¿Estás seguro de eliminar este gasto?')) {
+    if (window.confirm(t('expenses.confirmDelete'))) {
       try {
         await expensesAPI.delete(id);
         fetchExpenses();
@@ -240,7 +240,7 @@ const Expenses = () => {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
             <div className="p-6 border-b border-slate-200">
               <h3 className="text-xl font-semibold">
-                {editingExpense ? 'Editar Gasto' : t('expenses.newExpense')}
+                {editingExpense ? t('expenses.editExpense') : t('expenses.newExpense')}
               </h3>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">

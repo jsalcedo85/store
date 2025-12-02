@@ -116,7 +116,7 @@ const Products = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('¿Estás seguro de eliminar este producto?')) {
+    if (window.confirm(t('products.confirmDelete'))) {
       try {
         await productsAPI.delete(id);
         fetchProducts();
@@ -199,13 +199,12 @@ const Products = () => {
                     <td>{formatCurrency(product.price)}</td>
                     <td>
                       <span
-                        className={`badge ${
-                          product.stock <= 0
-                            ? 'badge-danger'
-                            : product.stock <= 10
+                        className={`badge ${product.stock <= 0
+                          ? 'badge-danger'
+                          : product.stock <= 10
                             ? 'badge-warning'
                             : 'badge-success'
-                        }`}
+                          }`}
                       >
                         {product.stock}
                       </span>
@@ -289,7 +288,7 @@ const Products = () => {
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="input"
                 >
-                  <option value="">Seleccionar...</option>
+                  <option value="">{t('products.select')}</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}

@@ -86,7 +86,9 @@
     "category": "Category",
     "cost": "Cost",
     "applyIgv": "Apply IGV",
-    "image": "Image"
+    "image": "Image",
+    "select": "Select...",
+    "confirmDelete": "Are you sure you want to delete this product?"
   },
   "inventory": {
     "title": "Inventory",
@@ -116,26 +118,36 @@
     "completed": "Completed",
     "pending": "Pending",
     "cancelled": "Cancelled",
-    "cancel": "Cancel Sale"
+    "cancel": "Cancel Sale",
+    "searchProducts": "Search products...",
+    "addProduct": "Add Product",
+    "confirmCancel": "Are you sure you want to cancel this sale?"
   },
   "clients": {
     "title": "Clients",
     "newClient": "New Client",
+    "editClient": "Edit Client",
     "documentType": "Document Type",
     "documentNumber": "Document Number",
     "dni": "DNI",
-    "ruc": "RUC"
+    "ruc": "RUC",
+    "confirmDelete": "Are you sure you want to delete this client?"
   },
   "suppliers": {
     "title": "Suppliers",
     "newSupplier": "New Supplier",
-    "contactName": "Contact Name"
+    "editSupplier": "Edit Supplier",
+    "contactName": "Contact Name",
+    "confirmDelete": "Are you sure you want to delete this supplier?"
   },
   "expenses": {
     "title": "Expenses",
     "newExpense": "New Expense",
+    "editExpense": "Edit Expense",
     "amount": "Amount",
-    "receiptNumber": "Receipt Number"
+    "receiptNumber": "Receipt Number",
+    "expenseCategory": "Expense Category",
+    "confirmDelete": "Are you sure you want to delete this expense?"
   },
   "quotes": {
     "title": "Quotes",

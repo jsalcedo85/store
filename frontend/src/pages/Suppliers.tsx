@@ -83,7 +83,7 @@ const Suppliers = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('¿Estás seguro de eliminar este proveedor?')) {
+    if (window.confirm(t('suppliers.confirmDelete'))) {
       try {
         await suppliersAPI.delete(id);
         fetchSuppliers();
@@ -196,7 +196,7 @@ const Suppliers = () => {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
             <div className="p-6 border-b border-slate-200">
               <h3 className="text-xl font-semibold">
-                {editingSupplier ? 'Editar Proveedor' : t('suppliers.newSupplier')}
+                {editingSupplier ? t('suppliers.editSupplier') : t('suppliers.newSupplier')}
               </h3>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">

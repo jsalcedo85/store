@@ -86,7 +86,9 @@
     "category": "Categoría",
     "cost": "Costo",
     "applyIgv": "Aplica IGV",
-    "image": "Imagen"
+    "image": "Imagen",
+    "select": "Seleccionar...",
+    "confirmDelete": "¿Estás seguro de eliminar este producto?"
   },
   "inventory": {
     "title": "Inventario",
@@ -116,26 +118,36 @@
     "completed": "Completada",
     "pending": "Pendiente",
     "cancelled": "Anulada",
-    "cancel": "Anular venta"
+    "cancel": "Anular venta",
+    "searchProducts": "Buscar productos...",
+    "addProduct": "Agregar Producto",
+    "confirmCancel": "¿Estás seguro de anular esta venta?"
   },
   "clients": {
     "title": "Clientes",
     "newClient": "Nuevo Cliente",
+    "editClient": "Editar Cliente",
     "documentType": "Tipo de Documento",
     "documentNumber": "Número de Documento",
     "dni": "DNI",
-    "ruc": "RUC"
+    "ruc": "RUC",
+    "confirmDelete": "¿Estás seguro de eliminar este cliente?"
   },
   "suppliers": {
     "title": "Proveedores",
     "newSupplier": "Nuevo Proveedor",
-    "contactName": "Nombre de Contacto"
+    "editSupplier": "Editar Proveedor",
+    "contactName": "Nombre de Contacto",
+    "confirmDelete": "¿Estás seguro de eliminar este proveedor?"
   },
   "expenses": {
     "title": "Gastos",
     "newExpense": "Nuevo Gasto",
+    "editExpense": "Editar Gasto",
     "amount": "Monto",
-    "receiptNumber": "Número de Comprobante"
+    "receiptNumber": "Número de Comprobante",
+    "expenseCategory": "Categoría de Gasto",
+    "confirmDelete": "¿Estás seguro de eliminar este gasto?"
   },
   "quotes": {
     "title": "Cotizaciones",

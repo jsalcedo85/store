@@ -84,7 +84,7 @@ const Clients = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('¿Estás seguro de eliminar este cliente?')) {
+    if (window.confirm(t('clients.confirmDelete'))) {
       try {
         await clientsAPI.delete(id);
         fetchClients();
@@ -197,7 +197,7 @@ const Clients = () => {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
             <div className="p-6 border-b border-slate-200">
               <h3 className="text-xl font-semibold">
-                {editingClient ? 'Editar Cliente' : t('clients.newClient')}
+                {editingClient ? t('clients.editClient') : t('clients.newClient')}
               </h3>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
