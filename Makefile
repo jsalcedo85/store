@@ -1,4 +1,4 @@
-.PHONY: install install-backend install-frontend migrate setup start start-backend start-frontend test test-backend test-frontend
+.PHONY: install install-backend install-frontend migrate setup start start-backend start-frontend test test-backend test-frontend docker-up docker-down docker-logs docker-clean docker-ps
 
 # Backend variables
 BACKEND_DIR = backend
@@ -9,6 +9,29 @@ PYTHON = python3
 FRONTEND_DIR = frontend
 # Source nvm and use node 18
 NVM_SOURCE = . $(HOME)/.nvm/nvm.sh && nvm use 18
+
+# Docker commands
+docker-up:
+	@echo "Starting PostgreSQL container..."
+	docker-compose up -d
+	@echo "Waiting for PostgreSQL to be ready..."
+	@sleep 5
+	docker-compose ps
+
+docker-down:
+	@echo "Stopping PostgreSQL container..."
+	docker-compose down
+
+docker-logs:
+	docker-compose logs -f postgres
+
+docker-clean:
+	@echo "Removing PostgreSQL container and volumes..."
+	docker-compose down -v
+	@echo "PostgreSQL data has been cleared."
+
+docker-ps:
+	docker-compose ps
 
 # Install dependencies for both backend and frontend
 install: install-backend install-frontend

@@ -12,7 +12,8 @@ Store is a full-stack business management system designed to streamline operatio
 - **Django 4.2** - High-level Python web framework
 - **Django REST Framework** - RESTful API development
 - **JWT Authentication** - Secure token-based authentication
-- **SQLite** - Database (development environment)
+- **PostgreSQL 15** - Production-grade relational database
+- **Docker** - Containerization for database services
 - **Poetry** - Dependency management and packaging
 
 ### Frontend
@@ -42,12 +43,19 @@ Store is a full-stack business management system designed to streamline operatio
 
 - Python 3.10 or higher
 - Node.js 18 or higher
+- Docker and Docker Compose
 - Poetry (for Python dependency management)
 - Yarn or npm (for Node.js dependency management)
 
 ### Backend Setup
 
 ```bash
+# Start PostgreSQL with Docker
+docker-compose up -d
+
+# Verify PostgreSQL is running
+docker-compose ps
+
 cd backend
 
 # Install Poetry if not already installed
@@ -70,6 +78,12 @@ python manage.py runserver
 ```
 
 The backend API will be available at `http://localhost:8000`
+
+**Docker Management:**
+- Start database: `make docker-up` or `docker-compose up -d`
+- Stop database: `make docker-down` or `docker-compose down`
+- View logs: `make docker-logs`
+- Reset database: `make docker-clean`
 
 ### Frontend Setup
 
