@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Sum, Count, Avg, F
-from django.db.models.functions import TruncDate, TruncMonth
+from django.db.models import Sum, Count, Avg, F, ExpressionWrapper, FloatField
+from django.db.models.functions import TruncDate, TruncMonth, Coalesce
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
@@ -161,13 +161,12 @@ def top_products(request):
 @permission_classes([IsAuthenticated])
 def sales_by_seller(request):
     """Get sales grouped by seller."""
-    days = int(request.query_params.get('days', 30))
-    end_date = timezone.now().date()
-    start_date = end_date - timedelta(days=days)
+    days = int(request.GET.get('days', 30))
+    date_from = timezone.now() - timedelta(days=days)
     
     by_seller = Sale.objects.filter(
-        created_at__date__gte=start_date,
-        status=Sale.Status.COMPLETED
+        created_at__gte=date_from,
+        status=Sale.Status.COMPLETED # Kept Sale.Status.COMPLETED for consistency
     ).values(
         'seller__id',
         'seller__username',
@@ -175,8 +174,12 @@ def sales_by_seller(request):
         'seller__last_name'
     ).annotate(
         total=Sum('total'),
-        count=Count('id'),
-        avg_sale=Avg('total')
+        count=Count('id')
+    ).annotate(
+        avg_sale=ExpressionWrapper(
+            F('total') / Coalesce(F('count'), 1),
+            output_field=FloatField()
+        )
     ).order_by('-total')
     
     # Rename fields to match frontend expectations
